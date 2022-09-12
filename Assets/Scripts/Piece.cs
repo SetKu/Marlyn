@@ -11,9 +11,10 @@ namespace Marlyn {
             King
         }
 
-        internal enum Color {
-            White,
-            Black
+        // Raw values corresponds to pawn movement direction.
+        internal enum Color: int {
+            White = -1,
+            Black = 1
         }
 
         internal Type type;
@@ -21,11 +22,15 @@ namespace Marlyn {
         internal Vector2Int position;
         internal bool hasMoved;
 
-        internal Piece(Type type, Color color, Vector2Int position) {
+        internal Piece(Type type, Color color, Vector2Int position, bool hasMoved = false) {
             this.type = type;
             this.color = color;
             this.position = position;
-            this.hasMoved = false;
+            this.hasMoved = hasMoved;
+        }
+
+        internal Piece Copy() {
+            return new Piece(type, color, position, hasMoved);
         }
     }
 }
