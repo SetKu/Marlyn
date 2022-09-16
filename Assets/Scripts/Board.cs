@@ -23,7 +23,7 @@ namespace Marlyn {
             }
         }
 
-        internal (CheckInfo white, CheckInfo black) GetCheckStatus() {
+        internal (CheckInfo white, CheckInfo black) GetCheckStatus(bool lookForCheckmate = true) {
             (CheckInfo white, CheckInfo black) checkStatus = (new CheckInfo(), new CheckInfo());
             
             foreach (Piece.Color color in Enum.GetValues(typeof(Piece.Color))) {
@@ -38,21 +38,26 @@ namespace Marlyn {
                 int legalMovesCount = 0;
 
                 foreach (Piece piece in pieces) {
+                    // Skip over pieces that aren't the opponent's.
                     if (piece.color == color) {
                         legalMovesCount += GetLegalMoves(piece).Count;
                         continue;
                     }
 
-                    // The block filter doesn't filter out the king, enabling us to check for check.
+                    // The block filter doesn't filter out moves
+                    // against the current king from the opponents side.
+                    // This enables us to check for check.
                     List<Move> moves = FilterBlocked(GetMovementPattern(piece));
 
                     foreach (Move move in moves) {
                         if (move.destination == king.position) {
                             switch (color) {
                             case Piece.Color.White:
+                                // The white king, currenly being iterated on, is in check.
                                 checkStatus.white.isCheck = true;
                                 break;
                             case Piece.Color.Black:
+                                // The black king, currenly being iterated on, is in check.
                                 checkStatus.black.isCheck = true;
                                 break;
                             }
@@ -63,7 +68,8 @@ namespace Marlyn {
                 }
 
                 if (legalMovesCount == 0) {
-                    // Without any legal moves, a color can either be in checkmate or stalemate.
+                    // Without any legal moves, a the current color or its opponent
+                    // can either be in checkmate or stalemate.
                     // If the king is in check, then the color is in checkmate.
                     // If the king is not in check, then the color is in stalemate.
                     switch (color) {
@@ -83,11 +89,13 @@ namespace Marlyn {
         }
         
         internal List<Move> GetLegalMoves(Piece piece) {
-            return FilterNonsense(FilterBlocked(GetMovementPattern(piece)));
+            return FilterCheckRelations(FilterBlocked(GetMovementPattern(piece)));
         }
 
-        // Filters out moves where the piece would be blocked, put their king in check/checkmate, or take one of their own pieces.
-        internal List<Move> FilterNonsense(List<Move> moves) {
+        // Filters out moves that put the piece's king in check/checkmate
+        // or only returns moves the saves the piece's king from check.
+        // TODO: NOT DONE!
+        internal List<Move> FilterCheckRelations(List<Move> moves) {
             List<Move> legalMoves = new List<Move>();
 
             foreach (Move move in moves) {
@@ -95,19 +103,19 @@ namespace Marlyn {
 
                 if (victimPiece == null) {
                     legalMoves.Add(move);
-                } else if (victimPiece.color != move.piece.color) {
-                    if (victimPiece.type != Piece.Type.King) {
-                        // Check if the king is in check and or checkmated
-                        legalMoves.Add(move);
-                    }
+                } else if (victimPiece.type != Piece.Type.King) {
+                    legalMoves.Add(move);
                 }
             }
 
             return legalMoves;
         }
 
-        // Does not filter out kings
-        // The point of groups is to filter out moves that are blocked by other pieces.
+        // Does not filter out attacks on kings.
+        // The point of groups is to filter out
+        // moves that are blocked by other pieces.
+        //
+        // This function filters out moves against pieces of one's own color.
         internal List<Move> FilterBlocked(List<List<Move>> groups) {
             List<Move> unblockedMoves = new List<Move>();
 
@@ -170,10 +178,10 @@ namespace Marlyn {
                 groups = GetBishopMovementPattern(piece);
                 break;
             case Piece.Type.Rook:
-
+                groups = GetRookMovementPattern(piece);
                 break;
             case Piece.Type.Queen:
-
+                groups = GetQueenMovementPattern(piece);
                 break;
             case Piece.Type.King:
 
@@ -277,6 +285,40 @@ namespace Marlyn {
                     });
                 }
             });
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetRookMovementPattern(Piece piece) {
+            // Rook moves in a straight line
+            List<List<Move>> groups = new List<List<Move>>();
+
+            OrthogonalPositions(piece.position, 8).ForEach(straightSet => {
+                List<Vector2Int> filtered = FilterToBoard(straightSet);
+
+                if (filtered.Count > 0) {
+                    groups.Add(new List<Move>());
+                    
+                    filtered.ForEach(position => {
+                        groups[groups.Count - 1].Add(new Move(piece, position));
+                    });
+                }
+            });
+
+            // Castling
+            // In castling, the king moves two squares either to the left 
+            // or right if the rook is on the same row and hasn't moved.
+            // In turn, the rook moves to the square next to the king on the inside.
+            //
+            // You cannot castle in check.
+
+            if (CheckInfo())
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetQueenMovementPattern(Piece piece) {
+            List<List<Move>> groups = new List<List<Move>>();
 
             return groups;
         }
