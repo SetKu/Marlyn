@@ -146,6 +146,15 @@ namespace Marlyn {
             Piece.Type.Knight
         };
 
+        // # Movement Patterns
+        // Movement patterns do not account for invalid moves.
+        // They simply contain the possible movements of a piece
+        // relative to its position, given the rules of the game.
+        //
+        // Movement patterns do account for positions off the board.
+        //
+        // Movement patterns still need to be filtered for blocked moves and whether they cause checks/checkmates or prevent them.
+
         internal List<List<Move>> GetMovementPattern(Piece piece) {
             // Group moves by direction/their need to be filtered.
             List<List<Move>> groups = null;
@@ -155,42 +164,10 @@ namespace Marlyn {
                 groups = GetPawnMovementPattern(piece);
                 break;
             case Piece.Type.Knight:
-                // Knight moves in an L shape
-                List<Vector2Int> knightSpots = FilterToBoard(new List<Vector2Int>() {
-                    new Vector2Int(piece.position.x + 1, piece.position.y + 2),
-                    new Vector2Int(piece.position.x + 2, piece.position.y + 1),
-                    new Vector2Int(piece.position.x + 2, piece.position.y - 1),
-                    new Vector2Int(piece.position.x + 1, piece.position.y - 2),
-                    new Vector2Int(piece.position.x - 1, piece.position.y - 2),
-                    new Vector2Int(piece.position.x - 2, piece.position.y - 1),
-                    new Vector2Int(piece.position.x - 2, piece.position.y + 1),
-                    new Vector2Int(piece.position.x - 1, piece.position.y + 2)
-                });
-
-                for (int i = 0; i < knightSpots.Count; i++) {
-                    Vector2Int spot = knightSpots[i];
-                    Piece victimPiece = PieceAt(spot);
-
-                    if (victimPiece == null) {
-                        groups.Add(new List<Move>());
-                        groups[i].Add(new Move(piece, spot));
-                    } else if (victimPiece.color != piece.color) {
-                        groups.Add(new List<Move>());
-                        groups[i].Add(new Move(piece, spot));
-                    }
-                }
-
+                groups = GetKnightMovementPattern(piece);
                 break;
             case Piece.Type.Bishop:
-                // Bishop moves in a diagonal line
-                List<List<Vector2Int>> diagonalPositions = DiagonalPositions(piece.position, 8);
-
-                for (int i = 0; i < diagonalPositions.Count; i++) {
-                    diagonalPositions[i] = FilterToBoard(diagonalPositions[i]);
-                }
-
-
-
+                groups = GetBishopMovementPattern(piece);
                 break;
             case Piece.Type.Rook:
 
@@ -212,15 +189,16 @@ namespace Marlyn {
 
             // Forward motion
             if (piece.hasMoved) {
-                // Pawn has moved, so it can only move one space forward.
-                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
-
+                // The pawn has moved, it can only move one space forward.
+                Vector2Int positionForward = new Vector2Int(piece.position.x, piece.position.y + (int) piece.color);
                 bool promotionPossible = (piece.position.y == 1 && piece.color == Piece.Color.White) || (piece.position.y == 6 && piece.color == Piece.Color.Black);
 
                 if (promotionPossible) {
                     foreach (Piece.Type type in promotionTypes) {
-                        groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color), type));
+                        groups[0].Add(new Move(piece, positionForward, type));
                     }
+                } else {
+                    groups[0].Add(new Move(piece, positionForward));
                 }
             } else {
                 // If the pawn is on the starting row, then it can move two spaces forward.
@@ -232,13 +210,13 @@ namespace Marlyn {
             groups.Add(new List<Move>());
 
             // Diagonal capture
-            Vector2Int[] captureSpots = new Vector2Int[2] {
+            List<Vector2Int> captureSpots = FilterToBoard(new List<Vector2Int> {
                 new Vector2Int(piece.position.x + 1, piece.position.y + (int) piece.color),
                 new Vector2Int(piece.position.x - 1, piece.position.y + (int) piece.color)
-            };
+            });
 
             // Check if the pawn can capture a piece diagonally
-            for (int i = 0; i < captureSpots.Length; i++) {
+            for (int i = 0; i < captureSpots.Count; i++) {
                 Vector2Int spot = captureSpots[i];
                 Piece victimPiece = PieceAt(spot);
 
@@ -256,6 +234,49 @@ namespace Marlyn {
                     groups[0].Add(new Move(piece, spot));
                 }
             }
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetKnightMovementPattern(Piece piece) {
+            List<List<Move>> groups = new List<List<Move>>();
+
+            // Knight moves in an L shape
+            List<Vector2Int> possiblePositions = FilterToBoard(new List<Vector2Int>() {
+                new Vector2Int(piece.position.x + 1, piece.position.y + 2),
+                new Vector2Int(piece.position.x + 2, piece.position.y + 1),
+                new Vector2Int(piece.position.x + 2, piece.position.y - 1),
+                new Vector2Int(piece.position.x + 1, piece.position.y - 2),
+                new Vector2Int(piece.position.x - 1, piece.position.y - 2),
+                new Vector2Int(piece.position.x - 2, piece.position.y - 1),
+                new Vector2Int(piece.position.x - 2, piece.position.y + 1),
+                new Vector2Int(piece.position.x - 1, piece.position.y + 2)
+            });
+
+            possiblePositions.ForEach(position => {
+                groups.Add(new List<Move>());
+                groups[groups.Count - 1].Add(new Move(piece, position));
+            });
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetBishopMovementPattern(Piece piece) {
+            // Bishop moves in a diagonal line
+            List<List<Move>> groups = new List<List<Move>>();
+            List<List<Vector2Int>> diagonalPositions = new List<List<Vector2Int>>();
+
+            DiagonalPositions(piece.position, 8).ForEach(diagonalSet => {
+                List<Vector2Int> filtered = FilterToBoard(diagonalSet);
+
+                if (filtered.Count > 0) {
+                    groups.Add(new List<Move>());
+                    
+                    filtered.ForEach(position => {
+                        groups[groups.Count - 1].Add(new Move(piece, position));
+                    });
+                }
+            });
 
             return groups;
         }
