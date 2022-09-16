@@ -22,7 +22,7 @@ namespace Marlyn {
             RenderPieces();
         }
 
-        internal Vector2Int ClosestTileToPoint(Vector3 point) {
+        internal Vector2Int? ClosestTileToPoint(Vector3 point) {
             float closestDistance = float.MaxValue;
             Vector2Int closestTile = new Vector2Int(-1, -1);
 
@@ -33,6 +33,12 @@ namespace Marlyn {
                     closestDistance = distance;
                     closestTile = new Vector2Int((int) (tilePosition.x - boardOffset.x), (int) (tilePosition.y - boardOffset.y));
                 }
+            }
+
+            // Don't return a tile if it's too far away.
+            // This prevents the user from dragging a piece off the board and having it move.
+            if (closestDistance > 0.51f) {
+                return null;
             }
 
             return closestTile;

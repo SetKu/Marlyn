@@ -7,12 +7,16 @@ namespace Marlyn {
         private Camera mainCamera;
         private Vector3 dragOffset;
         private Vector3 originalPosition;
-        private Vector2Int closestTile;
+        private Vector2Int? closestTile = null;
 
         void OnMouseUp() {
+            Vector3 pos = transform.position;
+            pos.z = 1;
+            transform.position = pos;
+
             if (piece != null) {
                 if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
-                    game.MakeAndRenderMove(new Move(piece, closestTile, null));
+                    game.MakeAndRenderMove(new Move(piece, closestTile.Value, null));
                     return;
                 }
 
@@ -28,6 +32,11 @@ namespace Marlyn {
         }
 
         void OnMouseDown() {
+            // Move the piece in front of all others (z = 1);
+            Vector3 pos = transform.position;
+            pos.z = 0;
+            transform.position = pos;
+
             if (mainCamera == null) {
                 mainCamera = Camera.main;
             }

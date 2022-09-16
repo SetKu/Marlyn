@@ -147,61 +147,49 @@ namespace Marlyn {
         };
 
         internal List<List<Move>> GetMovementPattern(Piece piece) {
-            // Group moves by direction
-            List<List<Move>> groups = new List<List<Move>>();
+            // Group moves by direction/their need to be filtered.
+            List<List<Move>> groups = null;
 
             switch (piece.type) {
             case Piece.Type.Pawn:
-                groups.Add(new List<Move>());
-
-                // Forward motion
-                if (piece.hasMoved) {
-                    // Pawn has moved, so it can only move one space forward.
-                    groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
-
-                    bool promotionPossible = (piece.position.y == 1 && piece.color == Piece.Color.White) || (piece.position.y == 6 && piece.color == Piece.Color.Black);
-
-                    if (promotionPossible) {
-                        foreach (Piece.Type type in promotionTypes) {
-                            groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color), type));
-                        }
-                    }
-                } else {
-                    // If the pawn is on the starting row, then it can move two spaces forward.
-                    groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
-                    groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color * 2)));
-                }
-                
-                // Diagonal capture
-                Vector2Int[] captureSpots = new Vector2Int[2] {
-                    new Vector2Int(piece.position.x + 1, piece.position.y + (int) piece.color),
-                    new Vector2Int(piece.position.x - 1, piece.position.y + (int) piece.color)
-                };
-
-                // Check if the pawn can capture a piece diagonally
-                foreach (Vector2Int spot in captureSpots) {
-                    Piece victimPiece = PieceAt(spot);
-
-                    if (victimPiece != null) {
-                        // Determine whether the caputure leads to a promotion
-                        if (spot.y == 0 || spot.y == 7) {
-                            foreach (Piece.Type type in promotionTypes) {
-                                groups[0].Add(new Move(piece, spot, type));
-                            }
-
-                            continue;
-                        }
-
-                        // If the code is here, the capture does not lead to a promotion
-                        groups[0].Add(new Move(piece, spot));
-                    }
-                }
-                
+                groups = GetPawnMovementPattern(piece);
                 break;
             case Piece.Type.Knight:
-                
+                // Knight moves in an L shape
+                List<Vector2Int> knightSpots = FilterToBoard(new List<Vector2Int>() {
+                    new Vector2Int(piece.position.x + 1, piece.position.y + 2),
+                    new Vector2Int(piece.position.x + 2, piece.position.y + 1),
+                    new Vector2Int(piece.position.x + 2, piece.position.y - 1),
+                    new Vector2Int(piece.position.x + 1, piece.position.y - 2),
+                    new Vector2Int(piece.position.x - 1, piece.position.y - 2),
+                    new Vector2Int(piece.position.x - 2, piece.position.y - 1),
+                    new Vector2Int(piece.position.x - 2, piece.position.y + 1),
+                    new Vector2Int(piece.position.x - 1, piece.position.y + 2)
+                });
+
+                for (int i = 0; i < knightSpots.Count; i++) {
+                    Vector2Int spot = knightSpots[i];
+                    Piece victimPiece = PieceAt(spot);
+
+                    if (victimPiece == null) {
+                        groups.Add(new List<Move>());
+                        groups[i].Add(new Move(piece, spot));
+                    } else if (victimPiece.color != piece.color) {
+                        groups.Add(new List<Move>());
+                        groups[i].Add(new Move(piece, spot));
+                    }
+                }
+
                 break;
             case Piece.Type.Bishop:
+                // Bishop moves in a diagonal line
+                List<List<Vector2Int>> diagonalPositions = DiagonalPositions(piece.position, 8);
+
+                for (int i = 0; i < diagonalPositions.Count; i++) {
+                    diagonalPositions[i] = FilterToBoard(diagonalPositions[i]);
+                }
+
+
 
                 break;
             case Piece.Type.Rook:
@@ -213,6 +201,60 @@ namespace Marlyn {
             case Piece.Type.King:
 
                 break;
+            }
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetPawnMovementPattern(Piece piece) {
+            List<List<Move>> groups = new List<List<Move>>();
+            groups.Add(new List<Move>());
+
+            // Forward motion
+            if (piece.hasMoved) {
+                // Pawn has moved, so it can only move one space forward.
+                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
+
+                bool promotionPossible = (piece.position.y == 1 && piece.color == Piece.Color.White) || (piece.position.y == 6 && piece.color == Piece.Color.Black);
+
+                if (promotionPossible) {
+                    foreach (Piece.Type type in promotionTypes) {
+                        groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color), type));
+                    }
+                }
+            } else {
+                // If the pawn is on the starting row, then it can move two spaces forward.
+                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
+                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color * 2)));
+            }
+            
+            groups.Add(new List<Move>());
+            groups.Add(new List<Move>());
+
+            // Diagonal capture
+            Vector2Int[] captureSpots = new Vector2Int[2] {
+                new Vector2Int(piece.position.x + 1, piece.position.y + (int) piece.color),
+                new Vector2Int(piece.position.x - 1, piece.position.y + (int) piece.color)
+            };
+
+            // Check if the pawn can capture a piece diagonally
+            for (int i = 0; i < captureSpots.Length; i++) {
+                Vector2Int spot = captureSpots[i];
+                Piece victimPiece = PieceAt(spot);
+
+                if (victimPiece != null) {
+                    // Determine whether the caputure leads to a promotion
+                    if (spot.y == 0 || spot.y == 7) {
+                        foreach (Piece.Type type in promotionTypes) {
+                            groups[i + 1].Add(new Move(piece, spot, type));
+                        }
+
+                        continue;
+                    }
+
+                    // If the code is here, the capture does not lead to a promotion
+                    groups[0].Add(new Move(piece, spot));
+                }
             }
 
             return groups;
