@@ -35,23 +35,15 @@ namespace Marlyn {
                     continue;
                 }
 
+                // The number of moves that the current color can make.
+                // If the king is in check, these are the moves that put him out of check.
+                // If the king is not in check, these are just all the moves that the
+                // current color can make, still without putting the king in check.
                 int escapesCount = 0;
 
                 foreach (Piece piece in pieces) {
-                    // Skip over pieces that aren't the opponent's.
                     if (piece.color == color) {
-                        List<Move> possibleEscapes = FilterBlocked(GetMovementPattern(piece));
-
-                        foreach (Move possibleEscape in possibleEscapes) {
-                            Board hypotheticalBoard = this.Copy();
-                            hypotheticalBoard.MakeMove(possibleEscape);
-
-                            if (hypotheticalBoard.IsTileUnderAttack(king.position, king.color)) {
-                                continue;
-                            }
-
-                            escapesCount++;
-                        };
+                        escapesCount += GetLegalMoves(piece).Count;
                     }
                 }
 
@@ -108,27 +100,25 @@ namespace Marlyn {
             return false;
         }
         
-        internal List<Move> GetLegalMoves(Piece piece) {
-            return FilterCheckRelations(FilterBlocked(GetMovementPattern(piece)));
-        }
-
         // Filters out moves that put the piece's king in check/checkmate
         // or only returns moves the saves the piece's king from check.
-        // TODO: NOT DONE!
-        internal List<Move> FilterCheckRelations(List<Move> moves) {
+        internal List<Move> GetLegalMoves(Piece piece) {
+            List<Move> startingMoves = FilterBlocked(GetMovementPattern(piece));
             List<Move> legalMoves = new List<Move>();
 
-            foreach (Move move in moves) {
-                Piece victimPiece = PieceAt(move.destination);
+            foreach (Move move in startingMoves) {
+                Board hypotheticalBoard = this.Copy();
+                hypotheticalBoard.MakeMove(move);
+                Piece king = GetKing(piece.color);
 
-                if (victimPiece == null) {
-                    legalMoves.Add(move);
-                } else if (victimPiece.type != Piece.Type.King) {
-                    legalMoves.Add(move);
+                if (hypotheticalBoard.IsTileUnderAttack(king.position, king.color)) {
+                    continue;
                 }
+
+                legalMoves.Add(move);
             }
 
-            return legalMoves;
+            return startingMoves;
         }
 
         // Does not filter out attacks on kings.
