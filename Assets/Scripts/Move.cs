@@ -6,6 +6,7 @@ namespace Marlyn {
         internal Vector2Int origin;
         internal Vector2Int destination;
         internal Piece.Type? promotion;
+        internal Piece caputuredPiece = null;
 
         internal Move(Piece piece, Vector2Int destination, Piece.Type? promotion = null) {
             this.piece = piece;

@@ -35,40 +35,41 @@ namespace Marlyn {
                     continue;
                 }
 
-                int legalMovesCount = 0;
+                int escapesCount = 0;
 
                 foreach (Piece piece in pieces) {
                     // Skip over pieces that aren't the opponent's.
                     if (piece.color == color) {
-                        legalMovesCount += GetLegalMoves(piece).Count;
-                        continue;
-                    }
+                        List<Move> possibleEscapes = FilterBlocked(GetMovementPattern(piece));
 
-                    // The block filter doesn't filter out moves
-                    // against the current king from the opponents side.
-                    // This enables us to check for check.
-                    List<Move> moves = FilterBlocked(GetMovementPattern(piece));
+                        foreach (Move possibleEscape in possibleEscapes) {
+                            Board hypotheticalBoard = this.Copy();
+                            hypotheticalBoard.MakeMove(possibleEscape);
 
-                    foreach (Move move in moves) {
-                        if (move.destination == king.position) {
-                            switch (color) {
-                            case Piece.Color.White:
-                                // The white king, currenly being iterated on, is in check.
-                                checkStatus.white.isCheck = true;
-                                break;
-                            case Piece.Color.Black:
-                                // The black king, currenly being iterated on, is in check.
-                                checkStatus.black.isCheck = true;
-                                break;
+                            if (hypotheticalBoard.IsTileUnderAttack(king.position, king.color)) {
+                                continue;
                             }
 
-                            break;
-                        }
+                            escapesCount++;
+                        };
                     }
                 }
 
-                if (legalMovesCount == 0) {
-                    // Without any legal moves, a the current color or its opponent
+                if (IsTileUnderAttack(king.position, king.color)) {
+                    switch (color) {
+                    case Piece.Color.White:
+                        // The white king, currenly being iterated on, is in check.
+                        checkStatus.white.isCheck = true;
+                        break;
+                    case Piece.Color.Black:
+                        // The black king, currenly being iterated on, is in check.
+                        checkStatus.black.isCheck = true;
+                        break;
+                    }
+                }
+
+                if (escapesCount == 0) {
+                    // Without any legal moves, the current color or its opponent
                     // can either be in checkmate or stalemate.
                     // If the king is in check, then the color is in checkmate.
                     // If the king is not in check, then the color is in stalemate.
@@ -86,6 +87,25 @@ namespace Marlyn {
             }
 
             return checkStatus;
+        }
+
+        internal bool IsTileUnderAttack(Vector2Int position, Piece.Color color) {
+            foreach (Piece piece in pieces) {
+                // Skip over pieces that aren't the attacking party.
+                if (piece.color != color) {
+                    continue;
+                }
+
+                List<Move> moves = FilterBlocked(GetMovementPattern(piece));
+
+                foreach (Move move in moves) {
+                    if (move.destination == position) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
         
         internal List<Move> GetLegalMoves(Piece piece) {
@@ -347,8 +367,35 @@ namespace Marlyn {
             // - You can not castle if there are pieces between the king and the rook.
             // - You can not castle if the king or rook has already moved.
 
-            if (GetCheckStatus().black.isCheck) {
-                
+            if (!piece.hasMoved) {
+                // Castling is now possible.
+
+                // King must be starting on their home row.
+                List<Piece> possibleRooks = new List<Piece>() {
+                    PieceAt(new Vector2Int(0, piece.position.y)),
+                    PieceAt(new Vector2Int(7, piece.position.y))
+                };
+
+                List<Piece> rooks = new List<Piece>();
+
+                foreach (Piece possibleRook in possibleRooks) {
+                    if (possibleRook.type == Piece.Type.Rook) {
+                        if (possibleRook.color == piece.color) {
+                            if (!possibleRook.hasMoved) {
+                                // The king and rook can both castle.
+                                // Now checks need to be done to see if there 
+                                // are pieces in the way or if the tiles are under attack.
+                                rooks.Add(possibleRook);
+                            }
+                        }
+                    }
+                }
+
+                foreach (Piece rook in rooks) {
+                    bool canCastle = true;
+
+
+                }
             }
 
             return groups;
@@ -427,6 +474,8 @@ namespace Marlyn {
  
                 // Add the pawns
                 for (int x = 0; x < 8; x++) {
+                    // The pawn row could also be found by type casting the color to an int,
+                    // which corresponds to the color's pawn's movement direction.
                     int row = color == Piece.Color.White ? 6 : 1;
                     pieces.Add(new Piece(Piece.Type.Pawn, color, new Vector2Int(x, row)));
                 }
@@ -444,6 +493,13 @@ namespace Marlyn {
         }
 
         internal void MakeMove(Move move) {
+            Piece captured = PieceAt(move.destination);
+
+            if (captured != null) {
+                pieces.Remove(captured);
+                move.caputuredPiece = captured;
+            }
+
             move.piece.position = move.destination;
 
             if (move.promotion != null) {
@@ -452,6 +508,7 @@ namespace Marlyn {
         }
 
         internal void UndoMove(Move move) {
+            pieces.Add(move.caputuredPiece);
             move.piece.position = move.origin;
 
             if (move.promotion != null) {
