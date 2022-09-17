@@ -305,20 +305,51 @@ namespace Marlyn {
                 }
             });
 
-            // Castling
-            // In castling, the king moves two squares either to the left 
-            // or right if the rook is on the same row and hasn't moved.
-            // In turn, the rook moves to the square next to the king on the inside.
-            //
-            // You cannot castle in check.
-
-            if (CheckInfo())
-
             return groups;
         }
 
         internal List<List<Move>> GetQueenMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
+
+            groups.AddRange(GetBishopMovementPattern(piece));
+            groups.AddRange(GetRookMovementPattern(piece));
+
+            return groups;
+        }
+
+        internal List<List<Move>> GetKingMovementPattern(Piece piece) {
+            List<List<Move>> groups = new List<List<Move>>();
+
+            Vector2Int[] possiblePositions = {
+                new Vector2Int(piece.position.x + 1, piece.position.y + 1),
+                new Vector2Int(piece.position.x + 1, piece.position.y),
+                new Vector2Int(piece.position.x + 1, piece.position.y - 1),
+                new Vector2Int(piece.position.x, piece.position.y + 1),
+                new Vector2Int(piece.position.x, piece.position.y - 1),
+                new Vector2Int(piece.position.x - 1, piece.position.y + 1),
+                new Vector2Int(piece.position.x - 1, piece.position.y),
+                new Vector2Int(piece.position.x - 1, piece.position.y - 1)
+            };
+
+            for (int i = 0; i < possiblePositions.Length; i++) {
+                groups.Add(new List<Move>());
+                groups[i].Add(new Move(piece, possiblePositions[i]));
+            }
+
+            // *Castling*
+            //
+            // In castling, the king moves two squares either to the left 
+            // or right if the rook is on the same row and hasn't moved.
+            // In turn, the rook moves to the square next to the king on the inside.
+            //
+            // - You cannot castle in check.
+            // - The king also cannot pass through a square that is under attack.
+            // - You can not castle if there are pieces between the king and the rook.
+            // - You can not castle if the king or rook has already moved.
+
+            if (GetCheckStatus().black.isCheck) {
+                
+            }
 
             return groups;
         }
