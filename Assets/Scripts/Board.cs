@@ -194,7 +194,7 @@ namespace Marlyn {
                 groups = GetQueenMovementPattern(piece);
                 break;
             case Piece.Type.King:
-
+                groups = GetKingMovementPattern(piece);
                 break;
             }
 
@@ -382,9 +382,50 @@ namespace Marlyn {
                 }
 
                 foreach (Piece rook in rooks) {
-                    bool canCastle = true;
+                    switch (rook.position.x) {
+                    case 0:
+                        // Queenside
 
+                        for (int i = 1; i < 4; i++) {
+                            Piece localPiece = PieceAt(new Vector2Int(i, piece.position.y));
 
+                            if (localPiece != null) {
+                                break;
+                            }
+                        }
+
+                        for (int i = 2; i < 4; i++) {
+                            if (IsTileUnderAttack(new Vector2Int(i, piece.position.y), piece.color)) {
+                                break;
+                            }
+                        }
+
+                        Move queensideMove = new Move(piece, new Vector2Int(2, piece.position.y));
+                        queensideMove.castlingType = Move.CastlingType.Queenside;
+                        groups.Add(new List<Move>() { queensideMove });
+
+                        break;
+                    case 7:
+                        // Kingside
+
+                        for (int i = 5; i < 7; i++) {
+                            Piece localPiece = PieceAt(new Vector2Int(i, piece.position.y));
+
+                            if (localPiece != null) {
+                                break;
+                            }
+
+                            if (IsTileUnderAttack(new Vector2Int(i, piece.position.y), piece.color)) {
+                                break;
+                            }
+                        }
+
+                        Move kingsideMove = new Move(piece, new Vector2Int(6, piece.position.y));
+                        kingsideMove.castlingType = Move.CastlingType.Kingside;
+                        groups.Add(new List<Move>() { kingsideMove });
+
+                        break;
+                    }
                 }
             }
 
@@ -483,6 +524,26 @@ namespace Marlyn {
         }
 
         internal void MakeMove(Move move) {
+            if (move.castlingType != null) {
+                // Castling
+                Piece rook = null;
+
+                switch (move.castlingType) {
+                case Move.CastlingType.Queenside:
+                    rook = PieceAt(new Vector2Int(0, move.piece.position.y));
+                    move.piece.position = new Vector2Int(2, move.piece.position.y);
+                    rook.position = new Vector2Int(3, rook.position.y);
+                    break;
+                case Move.CastlingType.Kingside:
+                    rook = PieceAt(new Vector2Int(7, move.piece.position.y));
+                    move.piece.position = new Vector2Int(6, move.piece.position.y);
+                    rook.position = new Vector2Int(5, rook.position.y);
+                    break;
+                }
+
+                return;
+            }
+
             Piece captured = PieceAt(move.destination);
 
             if (captured != null) {
@@ -498,6 +559,25 @@ namespace Marlyn {
         }
 
         internal void UndoMove(Move move) {
+            if (move.castlingType != null) {
+                // Undoing Castling
+                Piece rook = null;
+                move.piece.position = new Vector2Int(4, move.piece.position.y);
+
+                switch (move.castlingType) {
+                case Move.CastlingType.Queenside:
+                    rook = PieceAt(new Vector2Int(3, move.piece.position.y));
+                    rook.position = new Vector2Int(0, rook.position.y);
+                    break;
+                case Move.CastlingType.Kingside:
+                    rook = PieceAt(new Vector2Int(5, move.piece.position.y));
+                    rook.position = new Vector2Int(7, rook.position.y);
+                    break;
+                }
+
+                return;
+            }
+
             pieces.Add(move.caputuredPiece);
             move.piece.position = move.origin;
 
