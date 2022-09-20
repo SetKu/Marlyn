@@ -61,6 +61,8 @@ namespace Marlyn {
                 Destroy(child.gameObject);
             }
 
+            tileObjects = new List<GameObject>();
+
             for (int x = 0; x < 8; x++) {
                 for (int y = 0; y < 8; y++) {
                     float xf = x + boardOffset.x;

@@ -12,6 +12,7 @@ namespace Marlyn {
         }
 
         // Raw values corresponds to pawn movement direction.
+        // These should not be changed.
         internal enum Color: int {
             White = -1,
             Black = 1

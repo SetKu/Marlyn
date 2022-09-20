@@ -27,16 +27,16 @@ namespace Marlyn {
 
                 game.RenderPieces();
 
-                foreach (Move move in legalMoves) {
-                    if (piece.color == Piece.Color.White) {
-                        game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
-                        continue;
-                    }
+                // foreach (Move move in legalMoves) {
+                //     if (piece.color == Piece.Color.White) {
+                //         game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
+                //         continue;
+                //     }
                     
-                    game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.tile;
-                }
+                //     game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.tile;
+                // }
 
-                legalMoves = new List<Move>();
+                // legalMoves = new List<Move>();
             }
         }
 
@@ -62,16 +62,17 @@ namespace Marlyn {
             if (piece != null) {
                 originalPosition = transform.position;
                 dragOffset = transform.position - GetMousePos();
-                legalMoves = game.board.GetLegalMoves(piece);
+                // legalMoves = game.board.GetLegalMoves(piece);
+                // print(legalMoves);
 
-                foreach (Move move in legalMoves) {
-                    if (piece.color == Piece.Color.White) {
-                        game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
-                        continue;
-                    }
+                // foreach (Move move in legalMoves) {
+                //     if (piece.color == Piece.Color.White) {
+                //         game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
+                //         continue;
+                //     }
                     
-                    game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
-                }
+                //     game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
+                // }
             }
         }
 
