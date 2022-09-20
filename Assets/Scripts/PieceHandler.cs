@@ -8,11 +8,15 @@ namespace Marlyn {
         private Vector3 dragOffset;
         private Vector3 originalPosition;
         private Vector2Int? closestTile = null;
+        
+        private Vector3 dragScaleOffset = new Vector3(10, 10, 10);
 
         void OnMouseUp() {
             Vector3 pos = transform.position;
             pos.z = 1;
             transform.position = pos;
+
+            gameObject.transform.localScale -= dragScaleOffset;
 
             if (piece != null) {
                 if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
@@ -36,6 +40,8 @@ namespace Marlyn {
             Vector3 pos = transform.position;
             pos.z = 0;
             transform.position = pos;
+
+            gameObject.transform.localScale += dragScaleOffset;
 
             if (mainCamera == null) {
                 mainCamera = Camera.main;
