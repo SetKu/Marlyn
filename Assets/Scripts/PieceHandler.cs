@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Marlyn {
     public class PieceHandler: MonoBehaviour {
@@ -8,7 +9,7 @@ namespace Marlyn {
         private Vector3 dragOffset;
         private Vector3 originalPosition;
         private Vector2Int? closestTile = null;
-        
+        private List<Move> legalMoves = new List<Move>();
         private Vector3 dragScaleOffset = new Vector3(10, 10, 10);
 
         void OnMouseUp() {
@@ -25,6 +26,17 @@ namespace Marlyn {
                 }
 
                 game.RenderPieces();
+
+                foreach (Move move in legalMoves) {
+                    if (piece.color == Piece.Color.White) {
+                        game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
+                        continue;
+                    }
+                    
+                    game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.tile;
+                }
+
+                legalMoves = new List<Move>();
             }
         }
 
@@ -50,6 +62,16 @@ namespace Marlyn {
             if (piece != null) {
                 originalPosition = transform.position;
                 dragOffset = transform.position - GetMousePos();
+                legalMoves = game.board.GetLegalMoves(piece);
+
+                foreach (Move move in legalMoves) {
+                    if (piece.color == Piece.Color.White) {
+                        game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
+                        continue;
+                    }
+                    
+                    game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
+                }
             }
         }
 

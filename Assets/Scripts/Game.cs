@@ -7,7 +7,7 @@ namespace Marlyn {
         public Theme theme;
         internal Board board;
         private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
-        private List<Vector3> tilePositions = new List<Vector3>();
+        private List<GameObject> tileObjects = new List<GameObject>();
         private List<GameObject> pieceObjects = new List<GameObject>();
 
         // Start is called before the first frame update
@@ -22,16 +22,26 @@ namespace Marlyn {
             RenderPieces();
         }
 
+        internal GameObject TileForPoint(Vector2Int location) {
+            foreach (GameObject tile in tileObjects) {
+                if (new Vector2(tile.transform.position.x, tile.transform.position.y) - boardOffset == location) {
+                    return tile;
+                }
+            }
+
+            return null;
+        }
+
         internal Vector2Int? ClosestTileToPoint(Vector3 point) {
             float closestDistance = float.MaxValue;
             Vector2Int closestTile = new Vector2Int(-1, -1);
 
-            foreach (Vector3 tilePosition in tilePositions) {
-                float distance = Vector3.Distance(point, tilePosition);
+            foreach (GameObject tile in tileObjects) {
+                float distance = Vector3.Distance(point, tile.transform.position);
 
                 if (distance < closestDistance) {
                     closestDistance = distance;
-                    closestTile = new Vector2Int((int) (tilePosition.x - boardOffset.x), (int) (tilePosition.y - boardOffset.y));
+                    closestTile = new Vector2Int((int) (tile.transform.position.x - boardOffset.x), (int) (tile.transform.position.y - boardOffset.y));
                 }
             }
 
@@ -62,7 +72,7 @@ namespace Marlyn {
                     tile.transform.SetParent(canvas.transform, true);
                     tile.transform.position = position;
                     tile.name = $"Tile@X{x}Y{y}";
-                    this.tilePositions.Add(position);
+                    tileObjects.Add(tile);
 
                     if (x == 0 || y == 0) {
                         Vector3 tileSize = tile.GetComponent<Renderer>().bounds.size;
