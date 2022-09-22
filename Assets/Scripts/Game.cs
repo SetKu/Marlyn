@@ -24,7 +24,7 @@ namespace Marlyn {
 
         internal GameObject TileForPoint(Vector2Int location) {
             foreach (GameObject tile in tileObjects) {
-                if (new Vector2(tile.transform.position.x, tile.transform.position.y) - boardOffset == location) {
+                if (new Vector2Int((int) (tile.transform.position.x - boardOffset.x), (int) (tile.transform.position.y - boardOffset.y)) == location) {
                     return tile;
                 }
             }
@@ -47,7 +47,7 @@ namespace Marlyn {
 
             // Don't return a tile if it's too far away.
             // This prevents the user from dragging a piece off the board and having it move.
-            if (closestDistance > 0.51f) {
+            if (closestDistance > 0.75f) {
                 return null;
             }
 

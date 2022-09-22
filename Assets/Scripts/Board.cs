@@ -82,18 +82,98 @@ namespace Marlyn {
         }
 
         internal bool IsTileUnderAttack(Vector2Int position, Piece.Color color) {
-            foreach (Piece piece in pieces) {
-                // Skip over pieces that aren't the attacking party.
-                if (piece.color != color) {
+            Vector2Int[] pawnSpots = new Vector2Int[2] {
+                new Vector2Int(position.x + 1, position.y + ((int) color) * -1),
+                new Vector2Int(position.x - 1, position.y + ((int) color) * -1)
+            };
+
+            foreach (Vector2Int spot in pawnSpots) {
+                Piece possiblePawn = PieceAt(spot);
+
+                if (possiblePawn == null) {
                     continue;
                 }
 
-                List<Move> moves = FilterBlocked(GetMovementPattern(piece));
+                if (possiblePawn.type == Piece.Type.Pawn && possiblePawn.color == color) {
+                    return true;
+                }
+            }
 
-                foreach (Move move in moves) {
-                    if (move.destination == position) {
-                        return true;
+            foreach (Vector2Int pos in KnightHops(position)) {
+                Piece possibleKnight = PieceAt(pos);
+
+                if (possibleKnight == null) {
+                    continue;
+                }
+
+                if (possibleKnight.type == Piece.Type.Knight && possibleKnight.color == color) {
+                    return true;
+                }
+            }
+
+            // i is used to switch on orthogonal vs diagonals.
+            for (int i = 0; i < 2; i++) {
+                List<List<Vector2Int>> sets = (i == 0 ? OrthogonalPositions(position, 8) : DiagonalPositions(position, 8));
+
+                foreach (List<Vector2Int> directionalSet in sets) {
+                    // Positions in the diagonal set are ordered from closest to furthest.
+                    foreach (Vector2Int outwardPos in directionalSet) {
+                        // Position isn't on the board.
+                        if (outwardPos.x < 0 || outwardPos.x > 7 || outwardPos.y < 0 || outwardPos.y > 7) {
+                            break;
+                        }
+
+                        Piece foundPiece = PieceAt(outwardPos);
+
+                        if (foundPiece == null) {
+                            continue;
+                        }
+
+                        if (foundPiece.color != color) {
+                            // Attack is blocked by this piece.
+                            break;
+                        }
+
+                        if (i == 0) {
+                            if (foundPiece.type == Piece.Type.Rook || foundPiece.type == Piece.Type.Queen) {
+                                // Attack is not blocked and verified.
+                                // I'd be fearful if I was this tile.
+                                return true;
+                            }
+                        } else {
+                            if (foundPiece.type == Piece.Type.Bishop || foundPiece.type == Piece.Type.Queen) {
+                                return true;
+                            }
+                        }
+
+                        // Check for kings, which can only move 1 space.
+                        if (IsNextToEachOther(position, outwardPos)) {
+                            if (foundPiece.type == Piece.Type.King) {
+                                return true;
+                            }
+                        }
                     }
+                }
+            }
+
+            return false;
+        }
+
+        internal bool IsNextToEachOther(Vector2Int pos1, Vector2Int pos2) {
+            Vector2Int[] offsets = new Vector2Int[8] {
+                new Vector2Int(-1, -1),
+                new Vector2Int(0, -1),
+                new Vector2Int(1, -1),
+                new Vector2Int(1, 0),
+                new Vector2Int(1, 1),
+                new Vector2Int(0, 1),
+                new Vector2Int(-1, 1),
+                new Vector2Int(-1, 0)
+            };
+            
+            foreach (Vector2Int offset in offsets) {
+                if (pos1 + offset == pos2) {
+                    return true;
                 }
             }
 
@@ -107,18 +187,29 @@ namespace Marlyn {
             List<Move> legalMoves = new List<Move>();
 
             foreach (Move move in startingMoves) {
-                Board hypotheticalBoard = this.Copy();
-                hypotheticalBoard.MakeMove(move);
                 Piece king = GetKing(piece.color);
 
-                if (hypotheticalBoard.IsTileUnderAttack(king.position, king.color)) {
+                if (king == null) {
+                    // Something wen't really wrong here...
+                    return new List<Move>();
+                }
+
+                if (move.destination == king.position) {
+                    continue;
+                }
+
+                Board hypotheticalBoard = this.Copy();
+                hypotheticalBoard.MakeMove(move);
+
+                Piece.Color opposingColor = piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White;
+                if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
                     continue;
                 }
 
                 legalMoves.Add(move);
             }
 
-            return startingMoves;
+            return legalMoves;
         }
 
         // Does not filter out attacks on kings.
@@ -260,16 +351,7 @@ namespace Marlyn {
             List<List<Move>> groups = new List<List<Move>>();
 
             // Knight moves in an L shape
-            List<Vector2Int> possiblePositions = FilterToBoard(new List<Vector2Int>() {
-                new Vector2Int(piece.position.x + 1, piece.position.y + 2),
-                new Vector2Int(piece.position.x + 2, piece.position.y + 1),
-                new Vector2Int(piece.position.x + 2, piece.position.y - 1),
-                new Vector2Int(piece.position.x + 1, piece.position.y - 2),
-                new Vector2Int(piece.position.x - 1, piece.position.y - 2),
-                new Vector2Int(piece.position.x - 2, piece.position.y - 1),
-                new Vector2Int(piece.position.x - 2, piece.position.y + 1),
-                new Vector2Int(piece.position.x - 1, piece.position.y + 2)
-            });
+            List<Vector2Int> possiblePositions = FilterToBoard(KnightHops(piece.position));
 
             possiblePositions.ForEach(position => {
                 groups.Add(new List<Move>());
@@ -277,6 +359,19 @@ namespace Marlyn {
             });
 
             return groups;
+        }
+
+        internal List<Vector2Int> KnightHops(Vector2Int pos) {
+            return new List<Vector2Int>() {
+                new Vector2Int(pos.x + 1, pos.y + 2),
+                new Vector2Int(pos.x + 2, pos.y + 1),
+                new Vector2Int(pos.x + 2, pos.y - 1),
+                new Vector2Int(pos.x + 1, pos.y - 2),
+                new Vector2Int(pos.x - 1, pos.y - 2),
+                new Vector2Int(pos.x - 2, pos.y - 1),
+                new Vector2Int(pos.x - 2, pos.y + 1),
+                new Vector2Int(pos.x - 1, pos.y + 2)
+            };
         }
 
         internal List<List<Move>> GetBishopMovementPattern(Piece piece) {
@@ -369,13 +464,15 @@ namespace Marlyn {
                 List<Piece> rooks = new List<Piece>();
 
                 foreach (Piece possibleRook in possibleRooks) {
-                    if (possibleRook.type == Piece.Type.Rook) {
-                        if (possibleRook.color == piece.color) {
-                            if (!possibleRook.hasMoved) {
-                                // The king and rook can both castle.
-                                // Now checks need to be done to see if there 
-                                // are pieces in the way or if the tiles are under attack.
-                                rooks.Add(possibleRook);
+                    if (possibleRook != null) {
+                        if (possibleRook.type == Piece.Type.Rook) {
+                            if (possibleRook.color == piece.color) {
+                                if (!possibleRook.hasMoved) {
+                                    // The king and rook can both castle.
+                                    // Now checks need to be done to see if there 
+                                    // are pieces in the way or if the tiles are under attack.
+                                    rooks.Add(possibleRook);
+                                }
                             }
                         }
                     }
@@ -425,6 +522,8 @@ namespace Marlyn {
                         groups.Add(new List<Move>() { kingsideMove });
 
                         break;
+                    default:
+                        break;
                     }
                 }
             }
@@ -444,6 +543,7 @@ namespace Marlyn {
             return filteredPositions;
         }
 
+        // <returns>A collection of directional sets which are ordered from closest to their origin parameter to furthest.</returns>
         internal List<List<Vector2Int>> OrthogonalPositions(Vector2Int origin, int length) {
             List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
 
@@ -461,6 +561,7 @@ namespace Marlyn {
             return groups;
         }
 
+        // <returns>A collection of directional sets which are ordered from closest to their origin parameter to furthest.</returns>
         internal List<List<Vector2Int>> DiagonalPositions(Vector2Int origin, int length) {
             List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
 
@@ -490,6 +591,7 @@ namespace Marlyn {
 
         internal void Reset() {
             pieces = new List<Piece>();
+
             foreach (Piece.Color color in new Piece.Color[] { Piece.Color.White, Piece.Color.Black }) {
                 // Add home row pieces.
                 int home = color == Piece.Color.White ? 7 : 0;
@@ -524,6 +626,10 @@ namespace Marlyn {
         }
 
         internal void MakeMove(Move move) {
+            if (move == null) {
+                return;
+            }
+
             if (move.castlingType != null) {
                 // Castling
                 Piece rook = null;
@@ -541,6 +647,9 @@ namespace Marlyn {
                     break;
                 }
 
+                move.piece.hasMoved = true;
+                rook.hasMoved = true;
+
                 return;
             }
 
@@ -552,6 +661,11 @@ namespace Marlyn {
             }
 
             move.piece.position = move.destination;
+
+            if (!move.piece.hasMoved) {
+                move.piece.hasMoved = true;
+                move.switchBackHasMoved = true;
+            }
 
             if (move.promotion != null) {
                 move.piece.type = move.promotion.Value;
@@ -575,11 +689,18 @@ namespace Marlyn {
                     break;
                 }
 
+                move.piece.hasMoved = false;
+                rook.hasMoved = false;
+
                 return;
             }
 
             pieces.Add(move.caputuredPiece);
             move.piece.position = move.origin;
+
+            if (move.switchBackHasMoved) {
+                move.piece.hasMoved = false;
+            }
 
             if (move.promotion != null) {
                 move.piece.type = Piece.Type.Pawn;
@@ -588,7 +709,7 @@ namespace Marlyn {
 
         internal Board Copy() {
             Board copy = new Board();
-            copy.pieces = new List<Piece>(pieces);
+            copy.pieces = new List<Piece>();
 
             foreach (Piece piece in this.pieces) {
                 copy.pieces.Add(piece.Copy());

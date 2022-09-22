@@ -7,6 +7,7 @@ namespace Marlyn {
         internal Vector2Int destination;
         internal Piece.Type? promotion;
         internal Piece caputuredPiece = null;
+        internal bool switchBackHasMoved = false;
 
         // Having a set castling type guarantees that the corresponding rook exists to execute the move.
         internal CastlingType? castlingType = null;

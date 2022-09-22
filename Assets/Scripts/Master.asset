@@ -15,13 +15,13 @@ MonoBehaviour:
   whiteSet:
     tile: {r: 0.8113208, g: 0.71753025, b: 0.5855287, a: 1}
     piece: {r: 0.7264151, g: 0.47636518, b: 0.08566215, a: 1}
-    legal: {r: 0, g: 0, b: 0, a: 0}
+    legal: {r: 0.6603774, g: 0.30838376, b: 0.3286284, a: 1}
     dragFrom: {r: 0, g: 0, b: 0, a: 0}
     dragTo: {r: 0, g: 0, b: 0, a: 0}
   blackSet:
     tile: {r: 1, g: 1, b: 1, a: 1}
     piece: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
-    legal: {r: 0, g: 0, b: 0, a: 0}
+    legal: {r: 0.6627451, g: 0.30980393, b: 0.32941177, a: 1}
     dragFrom: {r: 0, g: 0, b: 0, a: 0}
     dragTo: {r: 0, g: 0, b: 0, a: 0}
   rook: {fileID: 6688172359448954701, guid: c27e06cc45e554382b69b0c4ae67bba4, type: 3}

@@ -21,22 +21,24 @@ namespace Marlyn {
 
             if (piece != null) {
                 if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
-                    game.MakeAndRenderMove(new Move(piece, closestTile.Value, null));
+                    print("Looking for matching legal move to point not at original position.");
+
+                    foreach (Move move in legalMoves) {
+                        if (move.destination == closestTile) {
+                            print("Made and rendered move.");
+                            game.MakeAndRenderMove(move);
+                            break;
+                        }
+                    }
+
+                    closestTile = null;
+                    ResetLegalTiles();
                     return;
                 }
 
+                // Reset piece to its original position automatically by rerendering state.
                 game.RenderPieces();
-
-                // foreach (Move move in legalMoves) {
-                //     if (piece.color == Piece.Color.White) {
-                //         game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
-                //         continue;
-                //     }
-                    
-                //     game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.tile;
-                // }
-
-                // legalMoves = new List<Move>();
+                ResetLegalTiles();
             }
         }
 
@@ -62,18 +64,50 @@ namespace Marlyn {
             if (piece != null) {
                 originalPosition = transform.position;
                 dragOffset = transform.position - GetMousePos();
-                // legalMoves = game.board.GetLegalMoves(piece);
-                // print(legalMoves);
 
-                // foreach (Move move in legalMoves) {
-                //     if (piece.color == Piece.Color.White) {
-                //         game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
-                //         continue;
-                //     }
-                    
-                //     game.TileForPoint(move.destination).GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
-                // }
+                ShowLegalTiles();
             }
+        }
+
+        internal void ShowLegalTiles() {
+            legalMoves = game.board.GetLegalMoves(piece);
+            print($"{legalMoves.Count.ToString()} {legalMoves.ToString()}");
+
+            foreach (Move move in legalMoves) {
+                GameObject tile = game.TileForPoint(move.destination);
+
+                if (tile == null) {
+                    print($"S: Couldn't find a tile for this particular move... for some reason. {move.destination.ToString()}");
+                    return;
+                }
+
+                if (piece.color == Piece.Color.White) {
+                    tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
+                    continue;
+                }
+                
+                tile.GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
+            }
+        }
+
+        internal void ResetLegalTiles() {
+            foreach (Move move in legalMoves) { 
+                GameObject tile = game.TileForPoint(move.destination);
+
+                if (tile == null) {
+                    print($"R: Couldn't find a tile for this particular move... for some reason. {move.destination.ToString()}");
+                    return;
+                }
+
+                if ((move.destination.x + move.destination.y) % 2 != 0) {
+                    tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
+                    continue;
+                }
+                
+                tile.GetComponent<SpriteRenderer>().color = game.theme.blackSet.tile;
+            }
+
+            legalMoves = new List<Move>();
         }
 
         Vector3 GetMousePos() {
