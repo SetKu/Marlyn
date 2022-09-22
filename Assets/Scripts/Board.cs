@@ -6,6 +6,7 @@ namespace Marlyn {
     [Serializable]
     public class Board {
         internal List<Piece> pieces;
+        internal List<Piece> capturedPieces;
 
         internal Board() {
             Reset();
@@ -591,6 +592,7 @@ namespace Marlyn {
 
         internal void Reset() {
             pieces = new List<Piece>();
+            capturedPieces = new List<Piece>();
 
             foreach (Piece.Color color in new Piece.Color[] { Piece.Color.White, Piece.Color.Black }) {
                 // Add home row pieces.
@@ -658,6 +660,7 @@ namespace Marlyn {
             if (captured != null) {
                 pieces.Remove(captured);
                 move.caputuredPiece = captured;
+                capturedPieces.Add(captured);
             }
 
             move.piece.position = move.destination;
@@ -700,6 +703,7 @@ namespace Marlyn {
             }
 
             pieces.Add(move.caputuredPiece);
+            capturedPieces.Remove(move.caputuredPiece);
             move.piece.position = move.origin;
 
             if (move.switchBackHasMoved) {
@@ -714,9 +718,14 @@ namespace Marlyn {
         internal Board Copy() {
             Board copy = new Board();
             copy.pieces = new List<Piece>();
+            // capturedPieces is already empty.
 
             foreach (Piece piece in this.pieces) {
                 copy.pieces.Add(piece.Copy());
+            }
+
+            foreach (Piece piece in this.capturedPieces) {
+                copy.capturedPieces.Add(piece.Copy());
             }
 
             return copy;
