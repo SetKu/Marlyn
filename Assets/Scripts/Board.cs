@@ -425,7 +425,7 @@ namespace Marlyn {
         internal List<List<Move>> GetKingMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
 
-            Vector2Int[] possiblePositions = {
+            List<Vector2Int> possiblePositions = FilterToBoard(new List<Vector2Int>() {
                 new Vector2Int(piece.position.x + 1, piece.position.y + 1),
                 new Vector2Int(piece.position.x + 1, piece.position.y),
                 new Vector2Int(piece.position.x + 1, piece.position.y - 1),
@@ -434,9 +434,9 @@ namespace Marlyn {
                 new Vector2Int(piece.position.x - 1, piece.position.y + 1),
                 new Vector2Int(piece.position.x - 1, piece.position.y),
                 new Vector2Int(piece.position.x - 1, piece.position.y - 1)
-            };
+            });
 
-            for (int i = 0; i < possiblePositions.Length; i++) {
+            for (int i = 0; i < possiblePositions.Count; i++) {
                 groups.Add(new List<Move>());
                 groups[i].Add(new Move(piece, possiblePositions[i]));
             }

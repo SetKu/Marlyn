@@ -99,7 +99,7 @@ namespace Marlyn {
                     return;
                 }
 
-                if ((move.destination.x + move.destination.y) % 2 != 0) {
+                if ((move.destination.x + move.destination.y) % 2 == 0) {
                     tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
                     continue;
                 }
