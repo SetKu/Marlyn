@@ -21,11 +21,8 @@ namespace Marlyn {
 
             if (piece != null) {
                 if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
-                    print("Looking for matching legal move to point not at original position.");
-
                     foreach (Move move in legalMoves) {
                         if (move.destination == closestTile) {
-                            print("Made and rendered move.");
                             game.MakeAndRenderMove(move);
                             break;
                         }
@@ -71,13 +68,11 @@ namespace Marlyn {
 
         internal void ShowLegalTiles() {
             legalMoves = game.board.GetLegalMoves(piece);
-            print($"{legalMoves.Count.ToString()} {legalMoves.ToString()}");
 
             foreach (Move move in legalMoves) {
                 GameObject tile = game.TileForPoint(move.destination);
 
                 if (tile == null) {
-                    print($"S: Couldn't find a tile for this particular move... for some reason. {move.destination.ToString()}");
                     return;
                 }
 
@@ -95,7 +90,6 @@ namespace Marlyn {
                 GameObject tile = game.TileForPoint(move.destination);
 
                 if (tile == null) {
-                    print($"R: Couldn't find a tile for this particular move... for some reason. {move.destination.ToString()}");
                     return;
                 }
 
