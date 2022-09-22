@@ -21,6 +21,8 @@ namespace Marlyn {
 
             if (piece != null) {
                 if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
+                    // IMPORTANT: Multiple moves to the same destination (like promotions) aren't handled.
+
                     foreach (Move move in legalMoves) {
                         if (move.destination == closestTile) {
                             game.MakeAndRenderMove(move);
