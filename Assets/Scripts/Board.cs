@@ -673,6 +673,10 @@ namespace Marlyn {
         }
 
         internal void UndoMove(Move move) {
+            if (move == null) {
+                return;
+            }
+
             if (move.castlingType != null) {
                 // Undoing Castling
                 Piece rook = null;

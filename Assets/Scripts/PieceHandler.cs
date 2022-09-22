@@ -69,6 +69,9 @@ namespace Marlyn {
         internal void ShowLegalTiles() {
             legalMoves = game.board.GetLegalMoves(piece);
 
+            Color whiteColor = game.theme.whiteSet.legal;
+            Color blackLegal = game.theme.blackSet.legal;
+
             foreach (Move move in legalMoves) {
                 GameObject tile = game.TileForPoint(move.destination);
 
@@ -76,12 +79,24 @@ namespace Marlyn {
                     return;
                 }
 
+                bool alt = (move.destination.x + move.destination.y) % 2 == 0;
+
                 if (piece.color == Piece.Color.White) {
-                    tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.legal;
+                    if (alt) {
+                        tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(whiteColor, 0.75f);
+                    } else {
+                        tile.GetComponent<SpriteRenderer>().color = whiteColor;
+                    }
+
                     continue;
                 }
                 
-                tile.GetComponent<SpriteRenderer>().color = game.theme.blackSet.legal;
+                if (alt) {
+                    tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(blackLegal, 0.75f);
+                    continue;
+                }
+
+                tile.GetComponent<SpriteRenderer>().color = blackLegal;
             }
         }
 
@@ -93,7 +108,9 @@ namespace Marlyn {
                     return;
                 }
 
-                if ((move.destination.x + move.destination.y) % 2 == 0) {
+                bool alt = (move.destination.x + move.destination.y) % 2 == 0;
+
+                if (alt) {
                     tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;
                     continue;
                 }

@@ -34,7 +34,7 @@ namespace Marlyn {
 
         internal Vector2Int? ClosestTileToPoint(Vector3 point) {
             float closestDistance = float.MaxValue;
-            Vector2Int closestTile = new Vector2Int(-1, -1);
+            Vector2Int? closestTile = null;
 
             foreach (GameObject tile in tileObjects) {
                 float distance = Vector3.Distance(point, tile.transform.position);
