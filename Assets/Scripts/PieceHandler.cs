@@ -27,17 +27,15 @@ namespace Marlyn {
                     foreach (Move move in legalMoves) {
                         if (move.destination == closestTile) {
                             game.MakeAndRenderMove(move);
-                            break;
+                            ResetLegalTiles();
+                            return;
                         }
                     }
-
-                    closestTile = null;
-                    ResetLegalTiles();
-                    return;
                 }
 
                 // Reset piece to its original position automatically by rerendering state.
-                game.RenderPieces();
+                gameObject.transform.position = originalPosition;
+
                 ResetLegalTiles();
             }
         }
