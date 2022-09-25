@@ -7,6 +7,7 @@ namespace Marlyn {
     public class Board {
         internal List<Piece> pieces;
         internal List<Piece> capturedPieces;
+        internal List<Move> movesMade;
 
         internal Board() {
             Reset();
@@ -593,6 +594,7 @@ namespace Marlyn {
         internal void Reset() {
             pieces = new List<Piece>();
             capturedPieces = new List<Piece>();
+            movesMade = new List<Move>();
 
             foreach (Piece.Color color in new Piece.Color[] { Piece.Color.White, Piece.Color.Black }) {
                 // Add home row pieces.
@@ -632,6 +634,8 @@ namespace Marlyn {
                 return;
             }
 
+            movesMade.Add(move);
+
             if (move.castlingType != null) {
                 // Castling
                 Piece rook = null;
@@ -657,7 +661,8 @@ namespace Marlyn {
 
             Piece captured = PieceAt(move.destination);
 
-            if (captured != null) {
+            if (captured != null && captured.id != move.piece.id) {
+                Debug.Log($"Caputuring piece: {captured.type}");
                 pieces.Remove(captured);
                 move.caputuredPiece = captured;
                 capturedPieces.Add(captured);
@@ -673,12 +678,16 @@ namespace Marlyn {
             if (move.promotion != null) {
                 move.piece.type = move.promotion.Value;
             }
+
+            Debug.Log($"Made Move with piece ({move.piece.type}, dest: {move.destination}), actual dest: {move.piece.position}, piece there: {PieceAt(move.piece.position)}");
         }
 
         internal void UndoMove(Move move) {
             if (move == null) {
                 return;
             }
+
+            movesMade.Remove(move);
 
             if (move.castlingType != null) {
                 // Undoing Castling
