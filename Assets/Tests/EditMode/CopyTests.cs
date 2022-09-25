@@ -9,7 +9,7 @@ namespace Tests {
     public class BoardCopyTests {
         // A Test behaves as an ordinary method
         [Test]
-        public void BoardCopyPieceListIsSeparated() {
+        public void PieceListIsSeparated() {
             // Use the Assert class to test conditions
             Board board = new Board();
             Board copy = board.Copy();
@@ -19,7 +19,7 @@ namespace Tests {
         }
 
         [Test]
-        public void BoardCopyPieceCopiesAreSeparated() {
+        public void PieceCopiesAreSeparated() {
             Board board = new Board();
             Board copy = board.Copy();
 
@@ -31,6 +31,27 @@ namespace Tests {
             int newX = board.pieces[board.pieces.Count - 1].position.x;
             int copyX = copy.pieces[copy.pieces.Count - 1].position.x;
             Assert.AreNotEqual(newX, copyX);
+        }
+
+        [Test]
+        public void GetLegalMovesDoesntAffectBoard() {
+            Board board = new Board();
+            
+            List<Vector2Int> originalPositions = new List<Vector2Int>();
+            foreach (Piece piece in board.pieces) {
+                originalPositions.Add(piece.position);
+            }
+
+            board.GetLegalMoves(board.pieces[0]);
+
+            List<Vector2Int> newPositions = new List<Vector2Int>();
+            foreach (Piece piece in board.pieces) {
+                newPositions.Add(piece.position);
+            }
+
+            for (int i = 0; i < originalPositions.Count; i++) {
+                Assert.AreEqual(originalPositions[i], newPositions[i]);
+            }
         }
     }
 
