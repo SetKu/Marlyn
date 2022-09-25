@@ -27,7 +27,6 @@ namespace Marlyn {
                     foreach (Move move in legalMoves) {
                         if (move.destination == closestTile) {
                             game.MakeAndRenderMove(move);
-                            print($"Position after making and rendering move: {move.piece.position}, piece there: {game.board.PieceAt(move.piece.position).type}");
                             break;
                         }
                     }

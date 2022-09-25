@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using Marlyn;
 
 namespace Tests {
@@ -34,15 +32,45 @@ namespace Tests {
         }
 
         [Test]
-        public void GetLegalMovesDoesntAffectBoard() {
+        public void LegalMovesDoesntAffectBoard() {
             Board board = new Board();
             
+            // Check for difference between original board and copy with get legal moves.
+
             List<Vector2Int> originalPositions = new List<Vector2Int>();
             foreach (Piece piece in board.pieces) {
                 originalPositions.Add(piece.position);
             }
 
-            board.GetLegalMoves(board.pieces[0]);
+            foreach (Piece piece in board.pieces) {
+                board.GetLegalMoves(piece);
+            }
+
+            List<Vector2Int> newPositions = new List<Vector2Int>();
+            foreach (Piece piece in board.pieces) {
+                newPositions.Add(piece.position);
+            }
+
+            for (int i = 0; i < originalPositions.Count; i++) {
+                Assert.AreEqual(originalPositions[i], newPositions[i]);
+            }
+        }
+
+        [Test]
+        public void KingMovementPatDoesntAffectBoard() {
+            Board board = new Board();
+            
+            // Check for difference between original board and copy with get legal moves.
+
+            List<Vector2Int> originalPositions = new List<Vector2Int>();
+            foreach (Piece piece in board.pieces) {
+                originalPositions.Add(piece.position);
+            }
+
+            Piece whiteKing = board.GetKing(Piece.Color.White);
+            board.GetKingMovementPattern(whiteKing);
+            Piece blackKing = board.GetKing(Piece.Color.Black);
+            board.GetKingMovementPattern(blackKing);
 
             List<Vector2Int> newPositions = new List<Vector2Int>();
             foreach (Piece piece in board.pieces) {

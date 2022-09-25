@@ -185,29 +185,32 @@ namespace Marlyn {
         // Filters out moves that put the piece's king in check/checkmate
         // or only returns moves the saves the piece's king from check.
         public List<Move> GetLegalMoves(Piece piece) {
-            List<Move> startingMoves = FilterBlocked(GetMovementPattern(piece));
             List<Move> legalMoves = new List<Move>();
+            Board hypotheticalBoard = this.Copy();
+            List<Move> startingMoves = hypotheticalBoard.FilterBlocked(GetMovementPattern(piece));
+            Piece king = hypotheticalBoard.GetKing(piece.color);
+
+            if (king == null) {
+                // Something wen't really wrong here...
+                return new List<Move>();
+            }
 
             foreach (Move move in startingMoves) {
-                Piece king = GetKing(piece.color);
-
-                if (king == null) {
-                    // Something wen't really wrong here...
-                    return new List<Move>();
-                }
-
                 if (move.destination == king.position) {
                     continue;
                 }
 
-                Board hypotheticalBoard = this.Copy();
                 hypotheticalBoard.MakeMove(move);
 
-                Piece.Color opposingColor = piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White;
+                Piece.Color opposingColor = (piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
                 if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
                     continue;
                 }
 
+                hypotheticalBoard.UndoMove(move);
+
+                // Remap move for current board, not hypothetical board.
+                move.piece = piece;
                 legalMoves.Add(move);
             }
 
@@ -661,8 +664,7 @@ namespace Marlyn {
 
             Piece captured = PieceAt(move.destination);
 
-            if (captured != null && captured.id != move.piece.id) {
-                Debug.Log($"Caputuring piece: {captured.type}");
+            if (captured != null) {
                 pieces.Remove(captured);
                 move.caputuredPiece = captured;
                 capturedPieces.Add(captured);
@@ -678,8 +680,6 @@ namespace Marlyn {
             if (move.promotion != null) {
                 move.piece.type = move.promotion.Value;
             }
-
-            Debug.Log($"Made Move with piece ({move.piece.type}, dest: {move.destination}), actual dest: {move.piece.position}, piece there: {PieceAt(move.piece.position)}");
         }
 
         public void UndoMove(Move move) {
@@ -692,15 +692,15 @@ namespace Marlyn {
             if (move.castlingType != null) {
                 // Undoing Castling
                 Piece rook = null;
-                move.piece.position = new Vector2Int(4, move.piece.position.y);
+                move.piece.position = new Vector2Int(4, move.origin.y);
 
                 switch (move.castlingType) {
                 case Move.CastlingType.Queenside:
-                    rook = PieceAt(new Vector2Int(3, move.piece.position.y));
+                    rook = PieceAt(new Vector2Int(3, move.origin.y));
                     rook.position = new Vector2Int(0, rook.position.y);
                     break;
                 case Move.CastlingType.Kingside:
-                    rook = PieceAt(new Vector2Int(5, move.piece.position.y));
+                    rook = PieceAt(new Vector2Int(5, move.origin.y));
                     rook.position = new Vector2Int(7, rook.position.y);
                     break;
                 }
@@ -711,8 +711,11 @@ namespace Marlyn {
                 return;
             }
 
-            pieces.Add(move.caputuredPiece);
-            capturedPieces.Remove(move.caputuredPiece);
+            if (move.caputuredPiece != null) {
+                pieces.Add(move.caputuredPiece);
+                capturedPieces.Remove(move.caputuredPiece);
+            }
+
             move.piece.position = move.origin;
 
             if (move.switchBackHasMoved) {
@@ -739,20 +742,5 @@ namespace Marlyn {
 
             return copy;
         }
-
-        // /// <summary>
-        // /// Load a chess notation string into the game in PGN format.
-        // /// </summary>
-        // /// <param name="notation">The chess notation string to load.</param>
-        // /// https://www.chess.com/article/view/chess-notation
-        // /// https://en.wikipedia.org/wiki/Portable_Game_Notation
-        // internal void LoadNotation(string notation) {
-        //     Regex regex = new Regex(@"\d.\.+ ");
-        //     MatchCollection matches = regex.Matches(notation);
-
-        //     foreach (Match match in matches) {
-        //         Debug.Log(match.Value);
-        //     }
-        // }
     }
 }
