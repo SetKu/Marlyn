@@ -3,7 +3,7 @@ using System;
 
 namespace Marlyn {
     public class Piece {
-        internal enum Type {
+        public enum Type {
             Pawn,
             Knight,
             Bishop,
@@ -14,26 +14,26 @@ namespace Marlyn {
 
         // Raw values corresponds to pawn movement direction.
         // These should not be changed.
-        internal enum Color: int {
+        public enum Color: int {
             White = -1,
             Black = 1
         }
 
-        internal string id;
-        internal Type type;
-        internal Color color;
-        internal Vector2Int position;
-        internal bool hasMoved;
+        public string id;
+        public Type type;
+        public Color color;
+        public Vector2Int position;
+        public bool hasMoved;
 
-        internal Piece(Type type, Color color, Vector2Int position, bool hasMoved = false) {
-            this.id = new Guid().ToString();
+        public Piece(Type type, Color color, Vector2Int position, bool hasMoved = false) {
+            this.id = Guid.NewGuid().ToString();
             this.type = type;
             this.color = color;
             this.position = position;
             this.hasMoved = hasMoved;
         }
 
-        internal Piece Copy() {
+        public Piece Copy() {
             return new Piece(type, color, position, hasMoved);
         }
     }

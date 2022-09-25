@@ -5,15 +5,15 @@ using System;
 namespace Marlyn {
     [Serializable]
     public class Board {
-        internal List<Piece> pieces;
-        internal List<Piece> capturedPieces;
-        internal List<Move> movesMade;
+        public List<Piece> pieces;
+        public List<Piece> capturedPieces;
+        public List<Move> movesMade;
 
-        internal Board() {
+        public Board() {
             Reset();
         }
 
-        internal struct CheckInfo {
+        public struct CheckInfo {
             internal bool isCheck;
             internal bool isCheckmate;
             internal bool isStalemate;
@@ -25,7 +25,7 @@ namespace Marlyn {
             }
         }
 
-        internal (CheckInfo white, CheckInfo black) GetCheckStatus(bool lookForCheckmate = true) {
+        public (CheckInfo white, CheckInfo black) GetCheckStatus(bool lookForCheckmate = true) {
             (CheckInfo white, CheckInfo black) checkStatus = (new CheckInfo(), new CheckInfo());
             
             foreach (Piece.Color color in Enum.GetValues(typeof(Piece.Color))) {
@@ -83,7 +83,7 @@ namespace Marlyn {
             return checkStatus;
         }
 
-        internal bool IsTileUnderAttack(Vector2Int position, Piece.Color color) {
+        public bool IsTileUnderAttack(Vector2Int position, Piece.Color color) {
             Vector2Int[] pawnSpots = new Vector2Int[2] {
                 new Vector2Int(position.x + 1, position.y + ((int) color) * -1),
                 new Vector2Int(position.x - 1, position.y + ((int) color) * -1)
@@ -184,7 +184,7 @@ namespace Marlyn {
         
         // Filters out moves that put the piece's king in check/checkmate
         // or only returns moves the saves the piece's king from check.
-        internal List<Move> GetLegalMoves(Piece piece) {
+        public List<Move> GetLegalMoves(Piece piece) {
             List<Move> startingMoves = FilterBlocked(GetMovementPattern(piece));
             List<Move> legalMoves = new List<Move>();
 
@@ -219,7 +219,7 @@ namespace Marlyn {
         // moves that are blocked by other pieces.
         //
         // This function filters out moves against pieces of one's own color.
-        internal List<Move> FilterBlocked(List<List<Move>> groups) {
+        public List<Move> FilterBlocked(List<List<Move>> groups) {
             List<Move> unblockedMoves = new List<Move>();
 
             // Groups represent directions
@@ -294,7 +294,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<List<Move>> GetPawnMovementPattern(Piece piece) {
+        public List<List<Move>> GetPawnMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
             groups.Add(new List<Move>());
 
@@ -349,7 +349,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<List<Move>> GetKnightMovementPattern(Piece piece) {
+        public List<List<Move>> GetKnightMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
 
             // Knight moves in an L shape
@@ -363,7 +363,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<Vector2Int> KnightHops(Vector2Int pos) {
+        public List<Vector2Int> KnightHops(Vector2Int pos) {
             return new List<Vector2Int>() {
                 new Vector2Int(pos.x + 1, pos.y + 2),
                 new Vector2Int(pos.x + 2, pos.y + 1),
@@ -376,7 +376,7 @@ namespace Marlyn {
             };
         }
 
-        internal List<List<Move>> GetBishopMovementPattern(Piece piece) {
+        public List<List<Move>> GetBishopMovementPattern(Piece piece) {
             // Bishop moves in a diagonal line
             List<List<Move>> groups = new List<List<Move>>();
             List<List<Vector2Int>> diagonalPositions = new List<List<Vector2Int>>();
@@ -396,7 +396,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<List<Move>> GetRookMovementPattern(Piece piece) {
+        public List<List<Move>> GetRookMovementPattern(Piece piece) {
             // Rook moves in a straight line
             List<List<Move>> groups = new List<List<Move>>();
 
@@ -415,7 +415,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<List<Move>> GetQueenMovementPattern(Piece piece) {
+        public List<List<Move>> GetQueenMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
 
             groups.AddRange(GetBishopMovementPattern(piece));
@@ -424,7 +424,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<List<Move>> GetKingMovementPattern(Piece piece) {
+        public List<List<Move>> GetKingMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
 
             List<Vector2Int> possiblePositions = FilterToBoard(new List<Vector2Int>() {
@@ -533,7 +533,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal List<Vector2Int> FilterToBoard(List<Vector2Int> positions) {
+        public List<Vector2Int> FilterToBoard(List<Vector2Int> positions) {
             List<Vector2Int> filteredPositions = new List<Vector2Int>();
 
             foreach (Vector2Int position in positions) {
@@ -546,7 +546,7 @@ namespace Marlyn {
         }
 
         // <returns>A collection of directional sets which are ordered from closest to their origin parameter to furthest.</returns>
-        internal List<List<Vector2Int>> OrthogonalPositions(Vector2Int origin, int length) {
+        public List<List<Vector2Int>> OrthogonalPositions(Vector2Int origin, int length) {
             List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
 
             for (int i = 0; i < 4; i++) {
@@ -564,7 +564,7 @@ namespace Marlyn {
         }
 
         // <returns>A collection of directional sets which are ordered from closest to their origin parameter to furthest.</returns>
-        internal List<List<Vector2Int>> DiagonalPositions(Vector2Int origin, int length) {
+        public List<List<Vector2Int>> DiagonalPositions(Vector2Int origin, int length) {
             List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
 
             for (int i = 0; i < 4; i++) {
@@ -581,7 +581,7 @@ namespace Marlyn {
             return groups;
         }
 
-        internal Piece GetKing(Piece.Color color) {
+        public Piece GetKing(Piece.Color color) {
             foreach (Piece piece in pieces) {
                 if (piece.type == Piece.Type.King && piece.color == color) {
                     return piece;
@@ -591,7 +591,7 @@ namespace Marlyn {
             return null;
         }
 
-        internal void Reset() {
+        public void Reset() {
             pieces = new List<Piece>();
             capturedPieces = new List<Piece>();
             movesMade = new List<Move>();
@@ -619,7 +619,7 @@ namespace Marlyn {
             }
         }
 
-        internal Piece PieceAt(Vector2Int position) {
+        public Piece PieceAt(Vector2Int position) {
             foreach (Piece piece in pieces) {
                 if (piece.position == position) {
                     return piece;
@@ -629,7 +629,7 @@ namespace Marlyn {
             return null;
         }
 
-        internal void MakeMove(Move move) {
+        public void MakeMove(Move move) {
             if (move == null) {
                 return;
             }
@@ -682,7 +682,7 @@ namespace Marlyn {
             Debug.Log($"Made Move with piece ({move.piece.type}, dest: {move.destination}), actual dest: {move.piece.position}, piece there: {PieceAt(move.piece.position)}");
         }
 
-        internal void UndoMove(Move move) {
+        public void UndoMove(Move move) {
             if (move == null) {
                 return;
             }
@@ -724,7 +724,7 @@ namespace Marlyn {
             }
         }
 
-        internal Board Copy() {
+        public Board Copy() {
             Board copy = new Board();
             copy.pieces = new List<Piece>();
             // capturedPieces is already empty.
