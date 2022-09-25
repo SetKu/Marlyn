@@ -4,11 +4,17 @@ using System.Collections.Generic;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
+        public AudioSource audioSource;
+        public AudioClip moveSFX;
         public Theme theme;
         internal Board board;
         private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
         private List<GameObject> tileObjects = new List<GameObject>();
         private List<GameObject> pieceObjects = new List<GameObject>();
+
+        internal void PlayMoveSFX() {
+            audioSource.PlayOneShot(moveSFX, 0.5f);
+        }
 
         // Start is called before the first frame update
         public void Start() {
@@ -20,6 +26,7 @@ namespace Marlyn {
         internal void MakeAndRenderMove(Move move) {
             board.MakeMove(move);
             RenderPieces();
+            PlayMoveSFX();
         }
 
         internal GameObject TileForPoint(Vector2Int location) {
