@@ -46,7 +46,35 @@ namespace Tests {
         }
 
         [Test]
-        public void TestCastling() {
+        public void TestCastlingQueenside() {
+            Board board = new Board();
+
+            Piece king = board.GetKing(Piece.Color.Black);
+            Assert.AreEqual(board.GetLegalMoves(king).Count, 0, "Why does the black king have a move at the start of the game?");
+
+            Move knightMove = new Move(board.PieceAt(new Vector2Int(1, 0)), new Vector2Int(0, 2));
+            board.MakeMove(knightMove);
+
+            Assert.AreEqual(board.GetLegalMoves(king).Count, 0, "The black king should not be able to make a move after only a knight has moved.");
+
+            Move pawnMove = new Move(board.PieceAt(new Vector2Int(1, 1)), new Vector2Int(1, 2));
+            Move bishopMove = new Move(board.PieceAt(new Vector2Int(2, 0)), new Vector2Int(0, 2));
+            board.MakeMove(pawnMove);
+            board.MakeMove(bishopMove);
+
+            Assert.AreEqual(board.GetLegalMoves(king).Count, 0, "The black king should not be able to move when boxed in.");
+
+            Piece queen = board.PieceAt(new Vector2Int(3, 0));
+            Move queenMove1 = new Move(queen, new Vector2Int(1, 0));
+            Move queenMove2 = new Move(queen, new Vector2Int(1, 1));
+            board.MakeMove(queenMove1);
+            board.MakeMove(queenMove2);
+
+            Assert.AreEqual(board.GetLegalMoves(king).Count, 2, "There is a problem if castling queenside isn't possible for the black king.");
+        }
+
+        [Test]
+        public void TestCastlingKingside() {
             Board board = new Board();
 
             Piece king = board.GetKing(Piece.Color.Black);
@@ -62,7 +90,7 @@ namespace Tests {
             board.MakeMove(pawnMove);
             board.MakeMove(bishopMove);
 
-            Assert.AreEqual(board.GetLegalMoves(king).Count, 1, "There is a problem if castling isn't possible for the black king.");
+            Assert.AreEqual(board.GetLegalMoves(king).Count, 2, "There is a problem if castling kingside isn't possible for the black king.");
         }
     }
 }

@@ -483,23 +483,40 @@ namespace Marlyn {
                     }
                 }
 
+                Piece.Color opposingColor = (piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
+
                 foreach (Piece rook in rooks) {
                     switch (rook.position.x) {
                     case 0:
                         // Queenside
 
+                        bool shouldBreakQueenside = false;
+
                         for (int i = 1; i < 4; i++) {
-                            Piece localPiece = PieceAt(new Vector2Int(i, piece.position.y));
+                            Vector2Int localPos = new Vector2Int(i, piece.position.y);
+                            Piece localPiece = PieceAt(localPos);
 
                             if (localPiece != null) {
+                                shouldBreakQueenside = true;
                                 break;
                             }
                         }
 
+                        if (shouldBreakQueenside) {
+                            break;
+                        }
+
                         for (int i = 2; i < 4; i++) {
-                            if (IsTileUnderAttack(new Vector2Int(i, piece.position.y), piece.color)) {
+                            Vector2Int localPos = new Vector2Int(i, piece.position.y);
+
+                            if (IsTileUnderAttack(localPos, opposingColor)) {
+                                shouldBreakQueenside = true;
                                 break;
                             }
+                        }
+
+                        if (shouldBreakQueenside) {
+                            break;
                         }
 
                         Move queensideMove = new Move(piece, new Vector2Int(2, piece.position.y));
@@ -510,16 +527,25 @@ namespace Marlyn {
                     case 7:
                         // Kingside
 
+                        bool shouldBreakKingside = false;
+
                         for (int i = 5; i < 7; i++) {
-                            Piece localPiece = PieceAt(new Vector2Int(i, piece.position.y));
+                            Vector2Int localPos = new Vector2Int(i, piece.position.y);
+                            Piece localPiece = PieceAt(localPos);
 
                             if (localPiece != null) {
+                                shouldBreakKingside = true;
                                 break;
                             }
 
-                            if (IsTileUnderAttack(new Vector2Int(i, piece.position.y), piece.color)) {
+                            if (IsTileUnderAttack(localPos, opposingColor)) {
+                                shouldBreakKingside = true;
                                 break;
                             }
+                        }
+
+                        if (shouldBreakKingside) {
+                            break;
                         }
 
                         Move kingsideMove = new Move(piece, new Vector2Int(6, piece.position.y));
