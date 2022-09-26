@@ -119,13 +119,13 @@ namespace Tests {
             Move move4 = new Move(pawn2, new Vector2Int(7, 3));
             Move move5 = new Move(pawn2, new Vector2Int(7, 4));
             Move move6 = new Move(pawn2, new Vector2Int(7, 5));
-            Move[] moves2 = new Move[] { move1, move2, move3 };
+            Move[] moves2 = new Move[] { move4, move5, move6 };
 
             foreach (Move move in moves2) {
                 board.MakeMove(move);
             }
 
-            List<Move> options2 = board.GetLegalMoves(pawn1);
+            List<Move> options2 = board.GetLegalMoves(pawn2);
             Assert.AreEqual(1, options2.Count);
             Assert.AreEqual(options2[0].destination, new Vector2Int(6, 6));
         }

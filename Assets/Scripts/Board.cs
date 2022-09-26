@@ -299,29 +299,41 @@ namespace Marlyn {
 
         public List<List<Move>> GetPawnMovementPattern(Piece piece) {
             List<List<Move>> groups = new List<List<Move>>();
-            groups.Add(new List<Move>());
-
+            
             // Forward motion
             if (piece.hasMoved) {
                 // The pawn has moved, it can only move one space forward.
                 Vector2Int positionForward = new Vector2Int(piece.position.x, piece.position.y + (int) piece.color);
-                bool promotionPossible = (piece.position.y == 1 && piece.color == Piece.Color.White) || (piece.position.y == 6 && piece.color == Piece.Color.Black);
 
-                if (promotionPossible) {
-                    foreach (Piece.Type type in promotionTypes) {
-                        groups[0].Add(new Move(piece, positionForward, type));
+                if (PieceAt(positionForward) == null) {
+                    bool whitePromoPossible = piece.position.y == 1 && piece.color == Piece.Color.White;
+                    bool blackPromoPossible = piece.position.y == 6 && piece.color == Piece.Color.Black;
+                    bool promotionPossible = (whitePromoPossible) || (blackPromoPossible);
+
+                    if (promotionPossible) {
+                        foreach (Piece.Type type in promotionTypes) {
+                            groups.Add(new List<Move>());
+                            groups[groups.Count - 1].Add(new Move(piece, positionForward, type));
+                        }
+                    } else {
+                        groups.Add(new List<Move>());
+                        groups[groups.Count - 1].Add(new Move(piece, positionForward));
                     }
-                } else {
-                    groups[0].Add(new Move(piece, positionForward));
                 }
             } else {
                 // If the pawn is on the starting row, then it can move two spaces forward.
-                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color)));
-                groups[0].Add(new Move(piece, new Vector2Int(piece.position.x, piece.position.y + (int) piece.color * 2)));
+                Vector2Int pos1 = new Vector2Int(piece.position.x, piece.position.y + (int) piece.color);
+                Vector2Int pos2 = new Vector2Int(piece.position.x, piece.position.y + (int) piece.color * 2);
+
+                if (PieceAt(pos1) == null) {
+                    groups.Add(new List<Move>());
+                    groups[groups.Count - 1].Add(new Move(piece, pos1));
+
+                    if (PieceAt(pos2) == null) {
+                        groups[groups.Count - 1].Add(new Move(piece, pos2));
+                    }
+                }
             }
-            
-            groups.Add(new List<Move>());
-            groups.Add(new List<Move>());
 
             // Diagonal capture
             List<Vector2Int> captureSpots = FilterToBoard(new List<Vector2Int> {
@@ -330,22 +342,23 @@ namespace Marlyn {
             });
 
             // Check if the pawn can capture a piece diagonally
-            for (int i = 0; i < captureSpots.Count; i++) {
-                Vector2Int spot = captureSpots[i];
+            foreach (Vector2Int spot in captureSpots) {
                 Piece victimPiece = PieceAt(spot);
 
                 if (victimPiece != null) {
                     // Determine whether the caputure leads to a promotion
                     if (spot.y == 0 || spot.y == 7) {
                         foreach (Piece.Type type in promotionTypes) {
-                            groups[i + 1].Add(new Move(piece, spot, type));
+                            groups.Add(new List<Move>());
+                            groups[groups.Count - 1].Add(new Move(piece, spot, type));
                         }
 
                         continue;
                     }
 
                     // If the code is here, the capture does not lead to a promotion
-                    groups[0].Add(new Move(piece, spot));
+                    groups.Add(new List<Move>());
+                    groups[groups.Count - 1].Add(new Move(piece, spot));
                 }
             }
 
