@@ -8,6 +8,7 @@ namespace Marlyn {
         public List<Piece> pieces;
         public List<Piece> capturedPieces;
         public List<Move> movesMade;
+        public Piece.Color nextMoveColor;
 
         public Board() {
             Reset();
@@ -641,6 +642,7 @@ namespace Marlyn {
             pieces = new List<Piece>();
             capturedPieces = new List<Piece>();
             movesMade = new List<Move>();
+            nextMoveColor = Piece.Color.White;
 
             foreach (Piece.Color color in new Piece.Color[] { Piece.Color.White, Piece.Color.Black }) {
                 // Add home row pieces.
@@ -676,11 +678,12 @@ namespace Marlyn {
         }
 
         public void MakeMove(Move move) {
-            if (move == null) {
+            if (move == null || move.piece == null) {
                 return;
             }
 
             movesMade.Add(move);
+            nextMoveColor = (move.piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
 
             if (move.castlingType != null) {
                 // Castling
