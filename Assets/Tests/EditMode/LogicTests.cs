@@ -92,5 +92,42 @@ namespace Tests {
 
             Assert.AreEqual(board.GetLegalMoves(king).Count, 2, "There is a problem if castling kingside isn't possible for the black king.");
         }
+
+        [Test]
+        public void TestPawnCapture() {
+            Board board = new Board();
+
+            // Left Side
+
+            Piece pawn1 = board.PieceAt(new Vector2Int(0, 1));
+            Move move1 = new Move(pawn1, new Vector2Int(0, 3));
+            Move move2 = new Move(pawn1, new Vector2Int(0, 4));
+            Move move3 = new Move(pawn1, new Vector2Int(0, 5));
+            Move[] moves1 = new Move[] { move1, move2, move3 };
+
+            foreach (Move move in moves1) {
+                board.MakeMove(move);
+            }
+
+            List<Move> options1 = board.GetLegalMoves(pawn1);
+            Assert.AreEqual(1, options1.Count);
+            Assert.AreEqual(options1[0].destination, new Vector2Int(1, 6));
+
+            // Right Side
+
+            Piece pawn2 = board.PieceAt(new Vector2Int(7, 1));
+            Move move4 = new Move(pawn2, new Vector2Int(7, 3));
+            Move move5 = new Move(pawn2, new Vector2Int(7, 4));
+            Move move6 = new Move(pawn2, new Vector2Int(7, 5));
+            Move[] moves2 = new Move[] { move1, move2, move3 };
+
+            foreach (Move move in moves2) {
+                board.MakeMove(move);
+            }
+
+            List<Move> options2 = board.GetLegalMoves(pawn1);
+            Assert.AreEqual(1, options2.Count);
+            Assert.AreEqual(options2[0].destination, new Vector2Int(6, 6));
+        }
     }
 }
