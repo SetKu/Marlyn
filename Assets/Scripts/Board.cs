@@ -188,23 +188,27 @@ namespace Marlyn {
             List<Move> legalMoves = new List<Move>();
             Board hypotheticalBoard = this.Copy();
             List<Move> startingMoves = hypotheticalBoard.FilterBlocked(GetMovementPattern(piece));
-            Piece king = hypotheticalBoard.GetKing(piece.color);
+            Piece whiteKing = hypotheticalBoard.GetKing(Piece.Color.White);
+            Piece blackKing = hypotheticalBoard.GetKing(Piece.Color.Black);
 
-            if (king == null) {
+            if (whiteKing == null || blackKing == null) {
                 // Something wen't really wrong here...
                 return new List<Move>();
             }
 
             foreach (Move move in startingMoves) {
-                if (move.destination == king.position) {
+                if (move.destination == whiteKing.position || move.destination == blackKing.position) {
                     continue;
                 }
 
                 hypotheticalBoard.MakeMove(move);
 
-                Piece.Color opposingColor = (piece.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
-                if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
-                    continue;
+                foreach (Piece king in new Piece[] { whiteKing, blackKing }) {
+                    Piece.Color opposingColor = (king.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
+
+                    if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
+                        continue;
+                    }
                 }
 
                 hypotheticalBoard.UndoMove(move);
