@@ -770,6 +770,36 @@ namespace Marlyn {
             }
         }
 
+        public int Eval(Piece.Color color) {
+            int total = 0;
+
+            foreach (Piece piece in pieces) {
+                if (piece.color == color) {
+                    switch (piece.type) {
+                        case Piece.Type.Pawn:
+                            total += 1;
+                            break;
+                        case Piece.Type.Knight:
+                            total += 3;
+                            break;
+                        case Piece.Type.Bishop:
+                            total += 3;
+                            break;
+                        case Piece.Type.Rook:
+                            total += 5;
+                            break;
+                        case Piece.Type.Queen:
+                            total += 9;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            return total;
+        }
+
         public Board Copy() {
             Board copy = new Board();
             copy.pieces = new List<Piece>();
