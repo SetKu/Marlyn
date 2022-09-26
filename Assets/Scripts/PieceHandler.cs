@@ -10,13 +10,10 @@ namespace Marlyn {
         private Vector3 originalPosition;
         private Vector2Int? closestTile = null;
         private List<Move> legalMoves = new List<Move>();
-        private Vector3 dragScaleOffset = new Vector3(10, 10, 10);
+        private Vector3 dragScaleOffset = new Vector3(10, 10, 1);
 
         void OnMouseUp() {
-            Vector3 pos = transform.position;
-            pos.z = 1;
-            transform.position = pos;
-
+            gameObject.transform.position -= new Vector3(0, 0, 1);
             gameObject.transform.localScale -= dragScaleOffset;
 
             if (piece != null) {
@@ -41,6 +38,8 @@ namespace Marlyn {
         }
 
         void OnMouseDrag() {
+            gameObject.transform.position += new Vector3(0, 0, 1); 
+
             if (piece != null) {
                 transform.position = GetMousePos() + dragOffset;
                 closestTile = game.GetComponent<Game>().ClosestTileToPoint(GetMousePos());

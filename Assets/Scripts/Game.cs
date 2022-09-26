@@ -31,7 +31,10 @@ namespace Marlyn {
 
         internal GameObject TileForPoint(Vector2Int location) {
             foreach (GameObject tile in tileObjects) {
-                if (new Vector2Int((int) (tile.transform.position.x - boardOffset.x), (int) (tile.transform.position.y - boardOffset.y)) == location) {
+                float xVal = tile.transform.position.x - boardOffset.x;
+                float yVal = tile.transform.position.y - boardOffset.y;
+
+                if (new Vector2Int((int) (xVal), (int) (yVal)) == location) {
                     return tile;
                 }
             }
