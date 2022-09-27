@@ -103,12 +103,7 @@ namespace Marlyn {
                     Debug.Log($"Got Piece Object: {pieceObj.name}");
 
                     Color current = pieceObj.GetComponent<SpriteRenderer>().color;
-
-                    if (alt) {
-                        pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.5f);
-                    } else {
-                        pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.25f);
-                    }
+                    pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.25f);
                 }
 
                 // White Case

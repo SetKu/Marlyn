@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
@@ -171,23 +172,26 @@ namespace Marlyn {
                 Destroy(piecesCanvas.transform.GetChild(i).gameObject);
             }
 
-            Vector2 referenceRes = boardCanvas.GetComponent<CanvasScaler>().referenceResolution;
-            float pixelsPerUnit = boardCanvas.GetComponent<CanvasScaler>().referencePixelsPerUnit;
-            Vector2 correctedBoardOffset = new Vector2(boardOffset.x * pixelsPerUnit, boardOffset.y * pixelsPerUnit);
-            Vector2 centerPos = new Vector2(referenceRes.x / 2 * -1, referenceRes.y / 2 * -1);
+            Vector2 referenceRes = piecesCanvas.GetComponent<CanvasScaler>().referenceResolution;
+            Vector2 sizeDelta = piecesCanvas.GetComponent<RectTransform>().sizeDelta;
 
             // Update the pieces map.
             foreach (Piece piece in board.pieces) {
-                float correctedX = piece.position.x * pixelsPerUnit + correctedBoardOffset.x;
-                float correctedY = piece.position.y * pixelsPerUnit + correctedBoardOffset.y;
-                Vector3 position = new Vector3(centerPos.x + correctedX, centerPos.y + correctedY, 0);
-                Debug.Log(position);
                 GameObject pieceObject = this.theme.Piece(piece.type, piece.color);
+
                 pieceObject.GetComponent<PieceHandler>().piece = piece;
                 pieceObject.GetComponent<PieceHandler>().game = this;
-                pieceObject.transform.localPosition = position;
                 pieceObject.transform.SetParent(piecesCanvas.transform, true);
                 pieceObject.name = $"Piece@X{piece.position.x}Y{piece.position.y}-{piece.type}-{piece.color}";
+
+                GameObject rTile = TileForLoc(piece.position);
+
+                Vector3 scale = pieceObject.transform.localScale;
+                float xS = (float) Math.Pow(sizeDelta.x / referenceRes.x, -1f);
+                float yS = (float) Math.Pow(sizeDelta.y / referenceRes.y, -1f);
+                scale *= xS > yS ? yS : xS;
+                pieceObject.transform.localScale = scale;
+                pieceObject.transform.localPosition = rTile.transform.localPosition;
 
                 pieceObjects.Add((piece.position, pieceObject));
             }
