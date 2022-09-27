@@ -1,16 +1,20 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
+        public Camera mainCamera;
         public AudioSource audioSource;
         public AudioClip moveSFX;
         public Theme theme;
         internal Board board;
+        private List<(Vector2Int, GameObject)> tileObjects = new List<(Vector2Int, GameObject)>();
+        private List<(Vector2Int, GameObject)> pieceObjects = new List<(Vector2Int, GameObject)>();
+        private GameObject boardCanvas;
+        private GameObject piecesCanvas;
         private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
-        private List<GameObject> tileObjects = new List<GameObject>();
-        private List<GameObject> pieceObjects = new List<GameObject>();
 
         internal void PlayMoveSFX() {
             audioSource.PlayOneShot(moveSFX, 0.5f);
@@ -18,6 +22,8 @@ namespace Marlyn {
 
         // Start is called before the first frame update
         public void Start() {
+            boardCanvas = GameObject.Find("BoardCanvas");
+            piecesCanvas = GameObject.Find("PiecesCanvas");
             board = new Board();
             SetupBoardUI();
             RenderPieces();
@@ -29,49 +35,56 @@ namespace Marlyn {
             PlayMoveSFX();
         }
 
-        internal GameObject TileForPoint(Vector2Int location) {
-            foreach (GameObject tile in tileObjects) {
-                float xVal = tile.transform.position.x - boardOffset.x;
-                float yVal = tile.transform.position.y - boardOffset.y;
-
-                if (new Vector2Int((int) (xVal), (int) (yVal)) == location) {
-                    return tile;
+        internal GameObject TileForLoc(Vector2Int location) {
+            foreach ((Vector2Int, GameObject) tupleSet in tileObjects) {
+                if (tupleSet.Item1 == location) {
+                    return tupleSet.Item2;
                 }
             }
 
             return null;
         }
 
-        internal Vector2Int? ClosestTileToPoint(Vector3 point) {
-            float closestDistance = float.MaxValue;
-            Vector2Int? closestTile = null;
+        internal GameObject PieceForLoc(Vector2Int location) {
+            Debug.Log("Trying to get piece for loc: " + location.x + location.y);
 
-            foreach (GameObject tile in tileObjects) {
-                float distance = Vector3.Distance(point, tile.transform.position);
+            foreach ((Vector2Int, GameObject) tupleSet in pieceObjects) {
+                if (tupleSet.Item1 == location) {
+                    return tupleSet.Item2;
+                }
+            }
+
+            return null;
+        }
+
+        internal Vector2Int? BoardLocForPoint(Vector3 point) {
+            float closestDistance = float.MaxValue;
+            Vector2Int? closestLoc = null;
+
+            foreach ((Vector2Int, GameObject) tupleSet in tileObjects) {
+                float distance = Vector2.Distance(point, tupleSet.Item2.transform.position);
 
                 if (distance < closestDistance) {
                     closestDistance = distance;
-                    closestTile = new Vector2Int((int) (tile.transform.position.x - boardOffset.x), (int) (tile.transform.position.y - boardOffset.y));
+                    closestLoc = tupleSet.Item1;
                 }
             }
 
             // Don't return a tile if it's too far away.
             // This prevents the user from dragging a piece off the board and having it move.
-            if (closestDistance > 0.75f) {
+            if (closestDistance > 0.9f) {
                 return null;
             }
 
-            return closestTile;
+            return closestLoc;
         }
 
         internal void SetupBoardUI() {
-            GameObject canvas = GameObject.Find("BoardCanvas");
-
-            foreach (Transform child in canvas.transform) {
+            foreach (Transform child in boardCanvas.transform) {
                 Destroy(child.gameObject);
             }
 
-            tileObjects = new List<GameObject>();
+            tileObjects = new List<(Vector2Int, GameObject)>();
 
             for (int x = 0; x < 8; x++) {
                 for (int y = 0; y < 8; y++) {
@@ -81,10 +94,12 @@ namespace Marlyn {
                     Color color = (x + y) % 2 == 0 ? theme.whiteSet.tile : theme.blackSet.tile;
                     GameObject tile = theme.Tile(color);
                     // add tile as child of canvas
-                    tile.transform.SetParent(canvas.transform, true);
+                    tile.transform.SetParent(boardCanvas.transform, true);
                     tile.transform.position = position;
                     tile.name = $"Tile@X{x}Y{y}";
-                    tileObjects.Add(tile);
+
+                    Vector2Int logicalLoc = (new Vector2Int(x, y));
+                    tileObjects.Add((logicalLoc, tile));
 
                     if (x == 0 || y == 0) {
                         Vector3 tileSize = tile.GetComponent<Renderer>().bounds.size;
@@ -96,7 +111,7 @@ namespace Marlyn {
                             textComponents.Add(textComp);
                             textObj.transform.position = new Vector3(position.x - tileSize.x, position.y, 0);
                             textComp.text = $"{y + 1}";
-                            textObj.transform.SetParent(canvas.transform, true);
+                            textObj.transform.SetParent(boardCanvas.transform, true);
                             textObj.GetComponent<Renderer>().sortingLayerName = "Board";
                         }
                         
@@ -133,7 +148,7 @@ namespace Marlyn {
                                     break;
                             }
 
-                            textObj.transform.SetParent(canvas.transform, true);
+                            textObj.transform.SetParent(boardCanvas.transform, true);
                             textObj.GetComponent<Renderer>().sortingLayerName = "Board";
                         }
 
@@ -150,21 +165,31 @@ namespace Marlyn {
         }
 
         internal void RenderPieces() {
-            GameObject canvas = GameObject.Find("PiecesCanvas");
-            
-            for (int i = 0; i < canvas.transform.childCount; i++) {
-                Destroy(canvas.transform.GetChild(i).gameObject);
+            Debug.Log(tileObjects[0].Item2.transform.localPosition + " " + tileObjects[1].Item2.transform.localPosition);
+
+            for (int i = 0; i < piecesCanvas.transform.childCount; i++) {
+                Destroy(piecesCanvas.transform.GetChild(i).gameObject);
             }
+
+            Vector2 referenceRes = boardCanvas.GetComponent<CanvasScaler>().referenceResolution;
+            float pixelsPerUnit = boardCanvas.GetComponent<CanvasScaler>().referencePixelsPerUnit;
+            Vector2 correctedBoardOffset = new Vector2(boardOffset.x * pixelsPerUnit, boardOffset.y * pixelsPerUnit);
+            Vector2 centerPos = new Vector2(referenceRes.x / 2 * -1, referenceRes.y / 2 * -1);
 
             // Update the pieces map.
             foreach (Piece piece in board.pieces) {
-                Vector3 position = new Vector3(piece.position.x + boardOffset.x, piece.position.y + boardOffset.y, 0);
+                float correctedX = piece.position.x * pixelsPerUnit + correctedBoardOffset.x;
+                float correctedY = piece.position.y * pixelsPerUnit + correctedBoardOffset.y;
+                Vector3 position = new Vector3(centerPos.x + correctedX, centerPos.y + correctedY, 0);
+                Debug.Log(position);
                 GameObject pieceObject = this.theme.Piece(piece.type, piece.color);
                 pieceObject.GetComponent<PieceHandler>().piece = piece;
                 pieceObject.GetComponent<PieceHandler>().game = this;
-                pieceObject.transform.position = position;
-                pieceObject.transform.SetParent(canvas.transform, true);
+                pieceObject.transform.localPosition = position;
+                pieceObject.transform.SetParent(piecesCanvas.transform, true);
                 pieceObject.name = $"Piece@X{piece.position.x}Y{piece.position.y}-{piece.type}-{piece.color}";
+
+                pieceObjects.Add((piece.position, pieceObject));
             }
         }
     }

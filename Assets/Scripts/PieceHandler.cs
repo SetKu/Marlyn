@@ -22,7 +22,7 @@ namespace Marlyn {
             gameObject.transform.localScale -= dragScaleOffset;
 
             if (piece != null) {
-                if (closestTile != null && closestTile != game.ClosestTileToPoint(originalPosition)) {
+                if (closestTile != null && closestTile != game.BoardLocForPoint(originalPosition)) {
                     // IMPORTANT: Multiple moves to the same destination (like promotions) aren't handled.
                     // Lookup how to create a system dialog box.
 
@@ -51,7 +51,7 @@ namespace Marlyn {
 
             if (piece != null) {
                 transform.position = GetMousePos() + dragOffset;
-                closestTile = game.GetComponent<Game>().ClosestTileToPoint(GetMousePos());
+                closestTile = game.GetComponent<Game>().BoardLocForPoint(GetMousePos());
             }
         }
 
@@ -89,13 +89,29 @@ namespace Marlyn {
             Color blackLegal = game.theme.blackSet.legal;
 
             foreach (Move move in legalMoves) {
-                GameObject tile = game.TileForPoint(move.destination);
+                GameObject tile = game.TileForLoc(move.destination);
 
                 if (tile == null) {
                     return;
                 }
 
+                GameObject pieceObj = game.PieceForLoc(move.destination);
+
                 bool alt = (move.destination.x + move.destination.y) % 2 == 0;
+
+                if (pieceObj != null) {
+                    Debug.Log($"Got Piece Object: {pieceObj.name}");
+
+                    Color current = pieceObj.GetComponent<SpriteRenderer>().color;
+
+                    if (alt) {
+                        pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.5f);
+                    } else {
+                        pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.25f);
+                    }
+                }
+
+                // White Case
 
                 if (piece.color == Piece.Color.White) {
                     if (alt) {
@@ -106,6 +122,8 @@ namespace Marlyn {
 
                     continue;
                 }
+
+                // Black Case
                 
                 if (alt) {
                     tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(blackLegal, 0.75f);
@@ -118,10 +136,20 @@ namespace Marlyn {
 
         internal void ResetLegalTiles() {
             foreach (Move move in legalMoves) { 
-                GameObject tile = game.TileForPoint(move.destination);
+                GameObject tile = game.TileForLoc(move.destination);
 
                 if (tile == null) {
                     return;
+                }
+
+                GameObject pieceObj = game.PieceForLoc(move.destination);
+
+                if (pieceObj != null) {
+                    if (pieceObj.GetComponent<PieceHandler>().piece.color == Piece.Color.White) {
+                        pieceObj.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.piece;
+                    } else {
+                        pieceObj.GetComponent<SpriteRenderer>().color = game.theme.blackSet.piece;
+                    }
                 }
 
                 bool alt = (move.destination.x + move.destination.y) % 2 == 0;
