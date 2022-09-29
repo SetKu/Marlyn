@@ -204,12 +204,18 @@ namespace Marlyn {
 
                 hypotheticalBoard.MakeMove(move);
 
+                bool shouldContinue = false;
                 foreach (Piece king in new Piece[] { whiteKing, blackKing }) {
                     Piece.Color opposingColor = (king.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
 
                     if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
-                        continue;
+                        shouldContinue = true;
+                        break;
                     }
+                }
+
+                if (shouldContinue) {
+                    continue;
                 }
 
                 hypotheticalBoard.UndoMove(move);

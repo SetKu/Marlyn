@@ -7,6 +7,7 @@ using System;
 namespace Marlyn {
     public class Game: MonoBehaviour {
         public TextMeshProUGUI capturedPiecesText;
+        public TextMeshProUGUI nextTurnText;
         public Camera mainCamera;
         public AudioSource audioSource;
         public AudioClip moveSFX;
@@ -206,6 +207,8 @@ namespace Marlyn {
             foreach (Piece piece in reversedCP) {
                 capturedPiecesText.text += $"{piece.color} {piece.type}\n";
             }
+
+            nextTurnText.text = $"Next Turn:\n{board.nextMoveColor}";
         }
     }
 }

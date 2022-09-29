@@ -11,11 +11,10 @@ namespace Marlyn {
         private Vector2Int? closestTile = null;
         private List<Move> legalMoves = new List<Move>();
         private Vector3 dragScaleOffset = new Vector3(10, 10, 0);
-        private bool validated = false;
         private int zOffset = -5;
 
         void OnMouseUp() {
-            if (!validated) {
+            if (game.board.nextMoveColor != piece.color) {
                 return;
             }
 
@@ -44,7 +43,7 @@ namespace Marlyn {
         }
 
         void OnMouseDrag() {
-            if (!validated) {
+            if (game.board.nextMoveColor != piece.color) {
                 return;
             }
 
@@ -58,11 +57,8 @@ namespace Marlyn {
 
         void OnMouseDown() {
             if (game.board.nextMoveColor != piece.color) {
-                validated = false;
                 return;
             }
-
-            validated = true;
 
             // Move the piece in front of all others.
             transform.position += new Vector3(0, 0, zOffset);
