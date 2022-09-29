@@ -193,6 +193,11 @@ namespace Marlyn {
                 pieceObject.transform.localScale = scale;
                 pieceObject.transform.localPosition = rTile.transform.localPosition;
 
+                // Set z position.
+                Vector3 posCopy = pieceObject.transform.localPosition;
+                posCopy.z = 0;
+                pieceObject.transform.localPosition = posCopy;
+
                 pieceObjects.Add((piece.position, pieceObject));
             }
 
