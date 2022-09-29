@@ -10,15 +10,16 @@ namespace Marlyn {
         private Vector3 originalPosition;
         private Vector2Int? closestTile = null;
         private List<Move> legalMoves = new List<Move>();
-        private Vector3 dragScaleOffset = new Vector3(10, 10, 1);
+        private Vector3 dragScaleOffset = new Vector3(10, 10, 0);
         private bool validated = false;
+        private int zOffset = -5;
 
         void OnMouseUp() {
             if (!validated) {
                 return;
             }
 
-            gameObject.transform.position -= new Vector3(0, 0, 1);
+            gameObject.transform.position -= new Vector3(0, 0, zOffset);
             gameObject.transform.localScale -= dragScaleOffset;
 
             if (piece != null) {
@@ -47,10 +48,10 @@ namespace Marlyn {
                 return;
             }
 
-            gameObject.transform.position += new Vector3(0, 0, 1); 
-
             if (piece != null) {
-                transform.position = GetMousePos() + dragOffset;
+                Vector3 newPos = GetMousePos() + dragOffset;
+                newPos.z = transform.position.z;
+                transform.position = newPos;
                 closestTile = game.GetComponent<Game>().BoardLocForPoint(GetMousePos());
             }
         }
@@ -63,10 +64,8 @@ namespace Marlyn {
 
             validated = true;
 
-            // Move the piece in front of all others (z = 1);
-            Vector3 pos = transform.position;
-            pos.z = 0;
-            transform.position = pos;
+            // Move the piece in front of all others.
+            transform.position += new Vector3(0, 0, zOffset);
 
             gameObject.transform.localScale += dragScaleOffset;
 
@@ -100,17 +99,15 @@ namespace Marlyn {
                 bool alt = (move.destination.x + move.destination.y) % 2 == 0;
 
                 if (pieceObj != null) {
-                    Debug.Log($"Got Piece Object: {pieceObj.name}");
-
                     Color current = pieceObj.GetComponent<SpriteRenderer>().color;
-                    pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.25f);
+                    pieceObj.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(current, 0.6f);
                 }
 
                 // White Case
 
                 if (piece.color == Piece.Color.White) {
                     if (alt) {
-                        tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(whiteColor, 0.75f);
+                        tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(whiteColor, 0.8f);
                     } else {
                         tile.GetComponent<SpriteRenderer>().color = whiteColor;
                     }
@@ -121,7 +118,7 @@ namespace Marlyn {
                 // Black Case
                 
                 if (alt) {
-                    tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(blackLegal, 0.75f);
+                    tile.GetComponent<SpriteRenderer>().color = SF.Utils.DecreaseValue(blackLegal, 0.8f);
                     continue;
                 }
 

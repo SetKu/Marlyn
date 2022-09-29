@@ -47,8 +47,6 @@ namespace Marlyn {
         }
 
         internal GameObject PieceForLoc(Vector2Int location) {
-            Debug.Log("Trying to get piece for loc: " + location.x + location.y);
-
             foreach ((Vector2Int, GameObject) tupleSet in pieceObjects) {
                 if (tupleSet.Item1 == location) {
                     return tupleSet.Item2;
@@ -166,11 +164,11 @@ namespace Marlyn {
         }
 
         internal void RenderPieces() {
-            Debug.Log(tileObjects[0].Item2.transform.localPosition + " " + tileObjects[1].Item2.transform.localPosition);
-
             for (int i = 0; i < piecesCanvas.transform.childCount; i++) {
                 Destroy(piecesCanvas.transform.GetChild(i).gameObject);
             }
+
+            pieceObjects = new List<(Vector2Int, GameObject)>();
 
             Vector2 referenceRes = piecesCanvas.GetComponent<CanvasScaler>().referenceResolution;
             Vector2 sizeDelta = piecesCanvas.GetComponent<RectTransform>().sizeDelta;
