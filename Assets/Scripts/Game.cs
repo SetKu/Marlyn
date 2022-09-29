@@ -6,10 +6,9 @@ using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
-        public bool flipColorSides;
         public TextMeshProUGUI capturedPiecesText;
         public TextMeshProUGUI nextTurnText;
-        public Camera mainCamera;
+        public TextMeshProUGUI checkStatusText;
         public AudioSource audioSource;
         public AudioClip moveSFX;
         public Theme theme;
@@ -19,6 +18,7 @@ namespace Marlyn {
         private GameObject boardCanvas;
         private GameObject piecesCanvas;
         private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
+        public bool flipColorSides;
 
         // Start is called before the first frame update
         public void Start() {
@@ -26,7 +26,8 @@ namespace Marlyn {
             piecesCanvas = GameObject.Find("PiecesCanvas");
             board = new Board();
             SetupBoardUI();
-            RenderPieces();
+            RenderPiecesUI();
+            RenderTextUI();
         }
 
         internal void PlayMoveSFX() {
@@ -35,7 +36,8 @@ namespace Marlyn {
 
         internal void MakeAndRenderMove(Move move) {
             board.MakeMove(move);
-            RenderPieces();
+            RenderPiecesUI();
+            RenderTextUI();
             PlayMoveSFX();
         }
 
@@ -166,7 +168,7 @@ namespace Marlyn {
             }
         }
 
-        internal void RenderPieces() {
+        internal void RenderPiecesUI() {
             for (int i = 0; i < piecesCanvas.transform.childCount; i++) {
                 Destroy(piecesCanvas.transform.GetChild(i).gameObject);
             }
@@ -201,7 +203,9 @@ namespace Marlyn {
 
                 pieceObjects.Add((piece.position, pieceObject));
             }
+        }
 
+        public void RenderTextUI() {
             capturedPiecesText.text = "Captured Pieces:\n\n";
 
             List<Piece> reversedCP = new List<Piece>();
@@ -215,6 +219,29 @@ namespace Marlyn {
             }
 
             nextTurnText.text = $"Next Turn:\n{board.nextMoveColor}";
+
+            (Board.CheckInfo white, Board.CheckInfo black) checkInfo = board.GetCheckStatus();
+            checkStatusText.text = "Check Status:\n";
+
+            if (checkInfo.white.isStalemate) {
+                checkStatusText.text += "Stalemate";
+            } else {
+                if (checkInfo.white.isCheck) {
+                    if (checkInfo.white.isCheckmate) {
+                        checkStatusText.text += "Checkmate for Black";
+                    } else {
+                        checkStatusText.text += "Check for Black";
+                    }
+                } else if (checkInfo.black.isCheck) {
+                    if (checkInfo.black.isCheckmate) {
+                        checkStatusText.text += "Checkmate for White";
+                    } else {
+                        checkStatusText.text += "Check for White";
+                    }
+                } else {
+                    checkStatusText.text += "Nothing yet";
+                }
+            }
         }
 
         public Vector2Int MapByRenderLoc(Vector2Int position) {
