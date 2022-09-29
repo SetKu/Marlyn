@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whiteSet:
     tile: {r: 0.8113208, g: 0.71753025, b: 0.5855287, a: 1}
-    piece: {r: 0.7264151, g: 0.47636518, b: 0.08566215, a: 1}
+    piece: {r: 0.8490566, g: 0.61789775, b: 0.26032397, a: 1}
     legal: {r: 0.6603774, g: 0.30838376, b: 0.3286284, a: 1}
     dragFrom: {r: 0, g: 0, b: 0, a: 0}
     dragTo: {r: 0, g: 0, b: 0, a: 0}

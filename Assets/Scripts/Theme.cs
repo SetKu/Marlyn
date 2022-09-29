@@ -12,10 +12,6 @@ namespace Marlyn {
             public Color piece;
             // Legal move tile highlight
             public Color legal;
-            // Origin color
-            public Color dragFrom;
-            // Hover color
-            public Color dragTo;
         }
 
         public GameObject rook, knight, bishop, queen, king, pawn, tile;

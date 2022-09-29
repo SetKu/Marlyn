@@ -27,7 +27,7 @@ namespace Marlyn {
                     // Lookup how to create a system dialog box.
 
                     foreach (Move move in legalMoves) {
-                        if (move.destination == closestTile) {
+                        if (move.destination == game.MapByRenderLoc(closestTile.Value)) {
                             game.MakeAndRenderMove(move);
                             ResetLegalTiles();
                             return;
@@ -51,7 +51,7 @@ namespace Marlyn {
                 Vector3 newPos = GetMousePos() + dragOffset;
                 newPos.z = transform.position.z;
                 transform.position = newPos;
-                closestTile = game.GetComponent<Game>().BoardLocForPoint(GetMousePos());
+                closestTile = game.BoardLocForPoint(GetMousePos());
             }
         }
 
@@ -83,7 +83,8 @@ namespace Marlyn {
             Color blackLegal = game.theme.blackSet.legal;
 
             foreach (Move move in legalMoves) {
-                GameObject tile = game.TileForLoc(move.destination);
+                Vector2Int mappedDest = game.MapByRenderLoc(move.destination);
+                GameObject tile = game.TileForLoc(mappedDest);
 
                 if (tile == null) {
                     return;
@@ -91,7 +92,7 @@ namespace Marlyn {
 
                 GameObject pieceObj = game.PieceForLoc(move.destination);
 
-                bool alt = (move.destination.x + move.destination.y) % 2 == 0;
+                bool alt = (mappedDest.x + mappedDest.y) % 2 == 0;
 
                 if (pieceObj != null) {
                     Color current = pieceObj.GetComponent<SpriteRenderer>().color;
@@ -123,7 +124,8 @@ namespace Marlyn {
 
         internal void ResetLegalTiles() {
             foreach (Move move in legalMoves) { 
-                GameObject tile = game.TileForLoc(move.destination);
+                Vector2Int mappedDest = game.MapByRenderLoc(move.destination);
+                GameObject tile = game.TileForLoc(mappedDest);
 
                 if (tile == null) {
                     return;
@@ -139,7 +141,7 @@ namespace Marlyn {
                     }
                 }
 
-                bool alt = (move.destination.x + move.destination.y) % 2 == 0;
+                bool alt = (mappedDest.x + mappedDest.y) % 2 == 0;
 
                 if (alt) {
                     tile.GetComponent<SpriteRenderer>().color = game.theme.whiteSet.tile;

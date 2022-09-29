@@ -937,7 +937,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -134, y: -101.899994}
+  m_AnchoredPosition: {x: -134, y: -101.900024}
   m_SizeDelta: {x: 179.62, y: 111.150024}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1915277075
@@ -1082,6 +1082,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7c9488f8d8c84d5798197162877cbe5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  flipColorSides: 0
   capturedPiecesText: {fileID: 596937112}
   nextTurnText: {fileID: 1915277075}
   mainCamera: {fileID: 519420031}
