@@ -32,28 +32,28 @@ namespace Tests {
         }
 
         [Test]
-        public void LegalMovesDoesntAffectBoard() {
+        public void GetLegalMovesDoesntAffectBoard() {
             Board board = new Board();
             
             // Check for difference between original board and copy with get legal moves.
 
-            List<Vector2Int> originalPositions = new List<Vector2Int>();
+            int total1 = 0;
             foreach (Piece piece in board.pieces) {
-                originalPositions.Add(piece.position);
+                total1 += piece.position.x;
+                total1 += piece.position.y;
             }
 
             foreach (Piece piece in board.pieces) {
                 board.GetLegalMoves(piece);
             }
 
-            List<Vector2Int> newPositions = new List<Vector2Int>();
+            int total2 = 0;
             foreach (Piece piece in board.pieces) {
-                newPositions.Add(piece.position);
+                total2 += piece.position.x;
+                total2 += piece.position.y;
             }
 
-            for (int i = 0; i < originalPositions.Count; i++) {
-                Assert.AreEqual(originalPositions[i], newPositions[i]);
-            }
+            Assert.AreEqual(total1, total2);
         }
 
         [Test]
@@ -80,6 +80,30 @@ namespace Tests {
             for (int i = 0; i < originalPositions.Count; i++) {
                 Assert.AreEqual(originalPositions[i], newPositions[i]);
             }
+        }
+
+        [Test]
+        public void GetCheckStatusAffectsBoard() {
+            Board board = new Board();
+
+            int posTotal1 = 0;
+
+            foreach (Piece piece in board.pieces) {
+                posTotal1 += piece.position.x;
+                posTotal1 += piece.position.y;
+            }
+
+            (Board.CheckInfo white, Board.CheckInfo black) checkStats = board.GetCheckStatus();
+
+            int posTotal2 = 0;
+
+            foreach (Piece piece in board.pieces) {
+                posTotal2 += piece.position.x;
+                posTotal2 += piece.position.y;
+            }
+
+            Assert.AreNotEqual(posTotal1, 0);
+            Assert.AreEqual(posTotal1, posTotal2, "Getting the check status of the board is affecting piece positions!");
         }
     }
 

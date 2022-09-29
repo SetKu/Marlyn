@@ -15,11 +15,11 @@ namespace Marlyn {
         }
 
         public struct CheckInfo {
-            internal bool isCheck;
-            internal bool isCheckmate;
-            internal bool isStalemate;
+            public bool isCheck;
+            public bool isCheckmate;
+            public bool isStalemate;
 
-            internal CheckInfo(bool isCheck = false, bool isCheckmate = false, bool isStalemate = false) {
+            public CheckInfo(bool isCheck = false, bool isCheckmate = false, bool isStalemate = false) {
                 this.isCheck = isCheck;
                 this.isCheckmate = isCheckmate;
                 this.isStalemate = isStalemate;
@@ -30,6 +30,7 @@ namespace Marlyn {
             (CheckInfo white, CheckInfo black) checkStatus = (new CheckInfo(), new CheckInfo());
             
             foreach (Piece.Color color in Enum.GetValues(typeof(Piece.Color))) {
+                Piece.Color oppColor = (color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
                 Piece king = GetKing(color);
                 
                 // This is an odd case. If the king is missing, then the game is over.
@@ -37,6 +38,21 @@ namespace Marlyn {
                 if (king == null) {
                     continue;
                 }
+
+                if (IsTileUnderAttack(king.position, oppColor)) {
+                    switch (color) {
+                    case Piece.Color.White:
+                        // The white king, currenly being iterated on, is in check.
+                        checkStatus.white.isCheck = true;
+                        break;
+                    case Piece.Color.Black:
+                        // The black king, currenly being iterated on, is in check.
+                        checkStatus.black.isCheck = true;
+                        break;
+                    }
+                }
+
+                // Even if the color isn't in check, we still need to check for a stalemate.
 
                 // The number of moves that the current color can make.
                 // If the king is in check, these are the moves that put him out of check.
@@ -47,19 +63,6 @@ namespace Marlyn {
                 foreach (Piece piece in pieces) {
                     if (piece.color == color) {
                         escapesCount += GetLegalMoves(piece).Count;
-                    }
-                }
-
-                if (IsTileUnderAttack(king.position, king.color)) {
-                    switch (color) {
-                    case Piece.Color.White:
-                        // The white king, currenly being iterated on, is in check.
-                        checkStatus.white.isCheck = true;
-                        break;
-                    case Piece.Color.Black:
-                        // The black king, currenly being iterated on, is in check.
-                        checkStatus.black.isCheck = true;
-                        break;
                     }
                 }
 
@@ -123,6 +126,7 @@ namespace Marlyn {
                     foreach (Vector2Int outwardPos in directionalSet) {
                         // Position isn't on the board.
                         if (outwardPos.x < 0 || outwardPos.x > 7 || outwardPos.y < 0 || outwardPos.y > 7) {
+                            // Stop checking set as all further positions must also be off the board.
                             break;
                         }
 
@@ -138,12 +142,14 @@ namespace Marlyn {
                         }
 
                         if (i == 0) {
+                            // Orthogonal threats
                             if (foundPiece.type == Piece.Type.Rook || foundPiece.type == Piece.Type.Queen) {
                                 // Attack is not blocked and verified.
                                 // I'd be fearful if I was this tile.
                                 return true;
                             }
                         } else {
+                            // Diagonal threats
                             if (foundPiece.type == Piece.Type.Bishop || foundPiece.type == Piece.Type.Queen) {
                                 return true;
                             }
@@ -188,7 +194,8 @@ namespace Marlyn {
         public List<Move> GetLegalMoves(Piece piece) {
             List<Move> legalMoves = new List<Move>();
             Board hypotheticalBoard = this.Copy();
-            List<Move> startingMoves = hypotheticalBoard.FilterBlocked(GetMovementPattern(piece));
+            Piece pieceCopy = hypotheticalBoard.PieceAt(piece.position);
+            List<Move> startingMoves = hypotheticalBoard.FilterBlocked(GetMovementPattern(pieceCopy));
             Piece whiteKing = hypotheticalBoard.GetKing(Piece.Color.White);
             Piece blackKing = hypotheticalBoard.GetKing(Piece.Color.Black);
 
@@ -198,26 +205,29 @@ namespace Marlyn {
             }
 
             foreach (Move move in startingMoves) {
+                // No move should take a king.
                 if (move.destination == whiteKing.position || move.destination == blackKing.position) {
                     continue;
                 }
 
                 hypotheticalBoard.MakeMove(move);
-
-                bool shouldContinue = false;
-                foreach (Piece king in new Piece[] { whiteKing, blackKing }) {
-                    Piece.Color opposingColor = (king.color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
-
-                    if (hypotheticalBoard.IsTileUnderAttack(king.position, opposingColor)) {
-                        shouldContinue = true;
-                        break;
+                
+                if (piece.color == Piece.Color.White) {
+                    // If the current king is under attack,  
+                    if (hypotheticalBoard.IsTileUnderAttack(whiteKing.position, Piece.Color.Black)) {
+                        // This move isn't legal.
+                        // A move cannot leave or put its
+                        // corresponding piece's king in check.
+                        hypotheticalBoard.UndoMove(move);
+                        continue;
+                    }
+                } else {
+                    if (hypotheticalBoard.IsTileUnderAttack(blackKing.position, Piece.Color.White)) {
+                        hypotheticalBoard.UndoMove(move);
+                        continue;
                     }
                 }
-
-                if (shouldContinue) {
-                    continue;
-                }
-
+                
                 hypotheticalBoard.UndoMove(move);
 
                 // Remap move for current board, not hypothetical board.

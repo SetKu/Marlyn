@@ -111,7 +111,7 @@ namespace Tests {
 
             List<Move> options1 = board.GetLegalMoves(pawn1);
             Assert.AreEqual(1, options1.Count);
-            Assert.AreEqual(options1[0].destination, new Vector2Int(1, 6));
+            Assert.AreEqual(new Vector2Int(1, 6), options1[0].destination);
 
             // Right Side
 
@@ -127,7 +127,76 @@ namespace Tests {
 
             List<Move> options2 = board.GetLegalMoves(pawn2);
             Assert.AreEqual(1, options2.Count);
-            Assert.AreEqual(options2[0].destination, new Vector2Int(6, 6));
+            Assert.AreEqual(new Vector2Int(6, 6), options2[0].destination);
+        }
+
+        [Test]
+        public void TestCheckStatus() {
+            Board board = new Board();
+
+            // Move pawn forward (by 2)
+            Move move1 = new Move(board.PieceAt(new Vector2Int(4, 6)), new Vector2Int(4, 4));
+            // Move king forward behind pawn
+            Piece defKing = board.PieceAt(new Vector2Int(4, 7));
+            Move move2 = new Move(defKing, new Vector2Int(4, 6));
+
+            // Move pawn forward to get opposing color's queen out
+            Move move3 = new Move(board.PieceAt(new Vector2Int(4, 1)), new Vector2Int(4, 2));
+            // Move queen out
+            Piece attQueen = board.PieceAt(new Vector2Int(3, 0));
+            Move move4 = new Move(attQueen, new Vector2Int(7, 4));
+            // Check opposing king from earlier with queen
+            Move move5 = new Move(attQueen, new Vector2Int(7, 3));
+
+            (Board.CheckInfo white, Board.CheckInfo black) checkStats1 = board.GetCheckStatus();
+            Board.CheckInfo checkStat1 = defKing.color == Piece.Color.White ? checkStats1.white : checkStats1.black;
+            Assert.AreEqual(false, checkStat1.isCheck, "King shouldn't be in check.");
+
+            foreach (Move move in new Move[] { move1, move2, move3, move4, move5 }) {
+                board.MakeMove(move);
+            }
+
+            (Board.CheckInfo white, Board.CheckInfo black) checkStats2 = board.GetCheckStatus();
+            Board.CheckInfo checkStat2 = defKing.color == Piece.Color.White ? checkStats2.white : checkStats2.black;
+
+            Assert.AreEqual(true, board.IsTileUnderAttack(defKing.position, attQueen.color), "The king should be under attack. There is a problem in `IsTileUnderAttack`.");
+            Assert.AreEqual(true, checkStat2.isCheck, "King should be in check. If this is wrong, there is a problem in the check status but not `IsTileUnderAttack` logic.");
+        }
+
+        [Test]
+        public void TestCheckEscapes() {
+            Board board = new Board();
+
+            // Move pawn forward (by 2)
+            Move move1 = new Move(board.PieceAt(new Vector2Int(4, 6)), new Vector2Int(4, 4));
+            // Move king forward behind pawn
+            Piece defKing = board.PieceAt(new Vector2Int(4, 7));
+            Move move2 = new Move(defKing, new Vector2Int(4, 6));
+
+            // Move pawn forward to get opposing color's queen out
+            Move move3 = new Move(board.PieceAt(new Vector2Int(4, 1)), new Vector2Int(4, 2));
+            // Move queen out
+            Piece attQueen = board.PieceAt(new Vector2Int(3, 0));
+            Move move4 = new Move(attQueen, new Vector2Int(7, 4));
+            // Check opposing king from earlier with queen
+            Move move5 = new Move(attQueen, new Vector2Int(7, 3));
+
+            foreach (Move move in new Move[] { move1, move2, move3, move4, move5 }) {
+                board.MakeMove(move);
+            }
+
+            List<Move> kingEscapes = board.GetLegalMoves(defKing);
+
+            foreach (Move escape in kingEscapes) {
+                Assert.AreNotEqual(defKing.position, escape.destination, "The king cannot escape by staying where he is!");
+            }
+
+            Assert.AreEqual(3, kingEscapes.Count, "There should only be two escapes for the king himself.");
+
+            Piece defKnight = board.PieceAt(new Vector2Int(6, 7));
+            List<Move> defKnightMoves = board.GetLegalMoves(defKnight);
+            Assert.AreEqual(1, defKnightMoves.Count, "The knight should only be able to move to block the queen's attack in the test.");
+            Assert.AreEqual(new Vector2Int(5, 5), defKnightMoves[0].destination);
         }
     }
 }
