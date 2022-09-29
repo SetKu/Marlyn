@@ -6,6 +6,7 @@ using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
+        public TextMeshProUGUI capturedPiecesText;
         public Camera mainCamera;
         public AudioSource audioSource;
         public AudioClip moveSFX;
@@ -17,10 +18,6 @@ namespace Marlyn {
         private GameObject piecesCanvas;
         private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
 
-        internal void PlayMoveSFX() {
-            audioSource.PlayOneShot(moveSFX, 0.5f);
-        }
-
         // Start is called before the first frame update
         public void Start() {
             boardCanvas = GameObject.Find("BoardCanvas");
@@ -28,6 +25,10 @@ namespace Marlyn {
             board = new Board();
             SetupBoardUI();
             RenderPieces();
+        }
+
+        internal void PlayMoveSFX() {
+            audioSource.PlayOneShot(moveSFX, 0.5f);
         }
 
         internal void MakeAndRenderMove(Move move) {
@@ -192,6 +193,18 @@ namespace Marlyn {
                 pieceObject.transform.localPosition = rTile.transform.localPosition;
 
                 pieceObjects.Add((piece.position, pieceObject));
+            }
+
+            capturedPiecesText.text = "Captured Pieces:\n\n";
+
+            List<Piece> reversedCP = new List<Piece>();
+
+            for (int i = board.capturedPieces.Count - 1; i > -1; i--) {
+                reversedCP.Add(board.capturedPieces[i]);
+            }
+
+            foreach (Piece piece in reversedCP) {
+                capturedPiecesText.text += $"{piece.color} {piece.type}\n";
             }
         }
     }

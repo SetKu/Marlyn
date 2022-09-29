@@ -66,7 +66,6 @@ namespace Marlyn {
 
             // Move the piece in front of all others.
             transform.position += new Vector3(0, 0, zOffset);
-
             gameObject.transform.localScale += dragScaleOffset;
 
             if (mainCamera == null) {
