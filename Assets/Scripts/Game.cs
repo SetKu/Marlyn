@@ -257,19 +257,5 @@ namespace Marlyn {
 
             return new Vector2Int(position.x, 7 - position.y);
         }
-
-        public List<Vector2Int> MapAllByRenderLoc(List<Vector2Int> positions) {
-            if (flipColorSides) {
-                return positions;
-            }
-
-            List<Vector2Int> newPositions = new List<Vector2Int>();
-
-            foreach (Vector2Int pos in positions) {
-                newPositions.Add(new Vector2Int(pos.x, 7 - pos.y));
-            }
-
-            return newPositions;
-        }
     }
 }
