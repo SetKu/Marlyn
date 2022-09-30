@@ -244,6 +244,12 @@ namespace Marlyn {
             }
         }
 
+        public void ToggleTextUIVisibility() {
+            capturedPiecesText.gameObject.SetActive(!capturedPiecesText.gameObject.activeSelf);
+            nextTurnText.gameObject.SetActive(!nextTurnText.gameObject.activeSelf);
+            checkStatusText.gameObject.SetActive(!checkStatusText.gameObject.activeSelf);
+        }
+
         public Vector2Int MapByRenderLoc(Vector2Int position) {
             if (flipColorSides) {
                 return position;
