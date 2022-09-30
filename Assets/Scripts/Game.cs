@@ -184,16 +184,18 @@ namespace Marlyn {
 
                 pieceObject.GetComponent<PieceHandler>().piece = piece;
                 pieceObject.GetComponent<PieceHandler>().game = this;
-                pieceObject.transform.SetParent(piecesCanvas.transform, true);
+                
                 pieceObject.name = $"Piece@X{piece.position.x}Y{piece.position.y}-{piece.type}-{piece.color}";
 
                 GameObject rTile = TileForLoc(MapByRenderLoc(piece.position));
 
-                Vector3 scale = pieceObject.transform.localScale;
-                float xS = (float) Math.Pow(sizeDelta.x / referenceRes.x, -1f);
-                float yS = (float) Math.Pow(sizeDelta.y / referenceRes.y, -1f);
-                scale *= xS > yS ? yS : xS;
-                pieceObject.transform.localScale = scale;
+                Vector3 tileScale = rTile.transform.lossyScale;
+                tileScale.x *= pieceObject.transform.localScale.x;
+                tileScale.y *= pieceObject.transform.localScale.y;
+                tileScale.z *= pieceObject.transform.localScale.z;
+                pieceObject.transform.localScale = tileScale;
+
+                pieceObject.transform.SetParent(piecesCanvas.transform, true);
                 pieceObject.transform.localPosition = rTile.transform.localPosition;
 
                 // Set z position.

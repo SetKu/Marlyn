@@ -14,16 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whiteSet:
     tile: {r: 0.8113208, g: 0.71753025, b: 0.5855287, a: 1}
-    piece: {r: 0.8490566, g: 0.61789775, b: 0.26032397, a: 1}
+    piece: {r: 0.8509804, g: 0.5568628, b: 0.09411765, a: 1}
     legal: {r: 0.6603774, g: 0.30838376, b: 0.3286284, a: 1}
-    dragFrom: {r: 0, g: 0, b: 0, a: 0}
-    dragTo: {r: 0, g: 0, b: 0, a: 0}
   blackSet:
     tile: {r: 1, g: 1, b: 1, a: 1}
     piece: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     legal: {r: 0.6627451, g: 0.30980393, b: 0.32941177, a: 1}
-    dragFrom: {r: 0, g: 0, b: 0, a: 0}
-    dragTo: {r: 0, g: 0, b: 0, a: 0}
   rook: {fileID: 6688172359448954701, guid: c27e06cc45e554382b69b0c4ae67bba4, type: 3}
   knight: {fileID: 7186826771154146292, guid: 364e7cb8f51d54b62bd6e537bfde41d1, type: 3}
   bishop: {fileID: 6344417637088579947, guid: 495e9badd190d457d81a2dd99e5cee07, type: 3}
