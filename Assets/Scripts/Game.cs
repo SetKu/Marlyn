@@ -44,6 +44,12 @@ namespace Marlyn {
             PlayMoveSFX();
         }
 
+        public void ResetGame() {
+            board.Reset();
+            RenderPiecesUI();
+            RenderTextUI();
+        }
+
         internal GameObject TileForLoc(Vector2Int location) {
             foreach ((Vector2Int, GameObject) tupleSet in tileObjects) {
                 if (tupleSet.Item1 == location) {
@@ -273,6 +279,7 @@ namespace Marlyn {
 
         public void EndPromotion() {
             Destroy(activePromoDialog);
+            activePromoDialog = null;
         }
     }
 }
