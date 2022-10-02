@@ -23,15 +23,21 @@ namespace Marlyn {
 
             if (piece != null) {
                 if (closestTile != null && closestTile != game.BoardLocForPoint(originalPosition)) {
-                    // IMPORTANT: Multiple moves to the same destination (like promotions) aren't handled.
-                    // Lookup how to create a system dialog box.
+                    List<Move> matchingMoves = new List<Move>();
 
                     foreach (Move move in legalMoves) {
                         if (move.destination == game.MapByRenderLoc(closestTile.Value)) {
-                            game.MakeAndRenderMove(move);
-                            ResetLegalTiles();
-                            return;
+                            matchingMoves.Add(move);
                         }
+                    }
+
+                    if (matchingMoves.Count == 1) {
+                        game.MakeAndRenderMove(matchingMoves[0]);
+                        ResetLegalTiles();
+                        return;
+                    } else if (matchingMoves.Count > 1) {
+                        // This is a promotion.
+                        game.StartPromotion(matchingMoves);
                     }
                 }
 

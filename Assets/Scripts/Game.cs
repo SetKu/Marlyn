@@ -2,28 +2,31 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
+        public bool flipColorSides;
+        public Theme theme;
+        public AudioSource audioSource;
+        public AudioClip moveSFX;
         public TextMeshProUGUI capturedPiecesText;
         public TextMeshProUGUI nextTurnText;
         public TextMeshProUGUI checkStatusText;
-        public AudioSource audioSource;
-        public AudioClip moveSFX;
-        public Theme theme;
+        public GameObject promotionDialog;
+        public Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
         internal Board board;
         private List<(Vector2Int, GameObject)> tileObjects = new List<(Vector2Int, GameObject)>();
         private List<(Vector2Int, GameObject)> pieceObjects = new List<(Vector2Int, GameObject)>();
         private GameObject boardCanvas;
         private GameObject piecesCanvas;
-        private Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
-        public bool flipColorSides;
+        private GameObject uiCanvas;
+        private GameObject activePromoDialog;
 
         // Start is called before the first frame update
         public void Start() {
             boardCanvas = GameObject.Find("BoardCanvas");
             piecesCanvas = GameObject.Find("PiecesCanvas");
+            uiCanvas = GameObject.Find("UICanvas");
             board = new Board();
             SetupBoardUI();
             RenderPiecesUI();
@@ -258,6 +261,18 @@ namespace Marlyn {
             }
 
             return new Vector2Int(position.x, 7 - position.y);
+        }
+
+        public void StartPromotion(List<Move> moves) {
+            GameObject dialog = Instantiate(promotionDialog);
+            dialog.transform.SetParent(uiCanvas.transform, false);
+            dialog.GetComponent<PromotionHandler>().moves = moves;
+            dialog.GetComponent<PromotionHandler>().controller = this;
+            activePromoDialog = dialog;
+        }
+
+        public void EndPromotion() {
+            Destroy(activePromoDialog);
         }
     }
 }
