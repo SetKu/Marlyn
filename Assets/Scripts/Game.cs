@@ -2,6 +2,8 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Threading;
+using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
@@ -12,8 +14,12 @@ namespace Marlyn {
         public TextMeshProUGUI capturedPiecesText;
         public TextMeshProUGUI nextTurnText;
         public TextMeshProUGUI checkStatusText;
+        public TextMeshProUGUI randomAIText;
+        public TextMeshProUGUI treeAIText;
         public GameObject promotionDialog;
         public Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
+        public AI ai;
+        public float aiMoveDelay;
         internal Board board;
         private List<(Vector2Int, GameObject)> tileObjects = new List<(Vector2Int, GameObject)>();
         private List<(Vector2Int, GameObject)> pieceObjects = new List<(Vector2Int, GameObject)>();
@@ -21,6 +27,33 @@ namespace Marlyn {
         private GameObject piecesCanvas;
         private GameObject uiCanvas;
         private GameObject activePromoDialog;
+        private bool runningRandomAI = false;
+        private bool runningTreeAI = false;
+
+        public void RandomAIClicked() {
+            runningRandomAI = !runningRandomAI;
+            randomAIText.text = runningRandomAI ? "Stop Random AI" : "Activate Random AI";
+
+            if (runningRandomAI) {
+                // Start running
+                Thread aiThread = new Thread(RunRandomAI);
+            }
+        }
+
+        public void RunRandomAI() {
+            while (!board.GameOver()) {
+                Move nextMove = ai.RandomMove(board.nextMoveColor);
+                MakeAndRenderMove(nextMove);
+
+                int delayInMS = (int) (aiMoveDelay * 1000);
+                Thread.Sleep(delayInMS);
+            }
+        }
+
+        public void TreeAIClicked() {
+            runningTreeAI = !runningTreeAI;
+            treeAIText.text = runningTreeAI ? "Stop Tree AI" : "Activate Tree AI";
+        }
 
         // Start is called before the first frame update
         public void Start() {
@@ -31,6 +64,9 @@ namespace Marlyn {
             SetupBoardUI();
             RenderPiecesUI();
             RenderTextUI();
+
+            ai = new AI();
+            ai.board = board;
         }
 
         internal void PlayMoveSFX() {
