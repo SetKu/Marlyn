@@ -223,5 +223,11 @@ namespace Tests {
             List<Move> moves2 = board.GetLegalMoves(king);
             Assert.AreEqual(8, moves2.Count, "The king should be able to move completely freely, in this case.");
         }
+
+        [Test]
+        public void TestGameNotOverAtStart() {
+            Board board = new Board();
+            Assert.AreEqual(false, board.GameOver());
+        }
     }
 }
