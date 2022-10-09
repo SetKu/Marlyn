@@ -2174,6 +2174,7 @@ MonoBehaviour:
   treeAIText: {fileID: 2137991856}
   promotionDialog: {fileID: 7476196381350399487, guid: 4711365e29aca48859091346eab2683e, type: 3}
   boardOffset: {x: -3.5, y: -3.5}
+  aiMoveDelay: 1.5
 --- !u!82 &2029731454
 AudioSource:
   m_ObjectHideFlags: 0

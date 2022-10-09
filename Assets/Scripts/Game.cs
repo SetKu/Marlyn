@@ -2,8 +2,8 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 using System.Threading;
-using System;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
@@ -29,6 +29,8 @@ namespace Marlyn {
         private GameObject activePromoDialog;
         private bool runningRandomAI = false;
         private bool runningTreeAI = false;
+        private List<Move> movesToExecute;
+        private CancellationToken? activeToken;
 
         public void RandomAIClicked() {
             runningRandomAI = !runningRandomAI;
@@ -36,17 +38,31 @@ namespace Marlyn {
 
             if (runningRandomAI) {
                 // Start running
-                Thread aiThread = new Thread(RunRandomAI);
+                activeToken = null;
+                movesToExecute = new List<Move>();
+                Task.Factory.StartNew(RunRandomAI, TaskCreationOptions.LongRunning);
+                return;
             }
+
+            CancellationTokenSource source = new CancellationTokenSource();
+            activeToken = source.Token;
+            source.Cancel();
         }
 
-        public void RunRandomAI() {
+        public async void RunRandomAI() {
             while (!board.GameOver()) {
+                if (activeToken != null) {
+                    if (activeToken.Value.IsCancellationRequested) {
+                        return;
+                    }
+                }
+
                 Move nextMove = ai.RandomMove(board.nextMoveColor);
-                MakeAndRenderMove(nextMove);
+                movesToExecute.Add(nextMove);
+                Debug.Log("Added move");
 
                 int delayInMS = (int) (aiMoveDelay * 1000);
-                Thread.Sleep(delayInMS);
+                await Task.Delay(delayInMS);
             }
         }
 
@@ -65,8 +81,23 @@ namespace Marlyn {
             RenderPiecesUI();
             RenderTextUI();
 
+            movesToExecute = new List<Move>();
             ai = new AI();
             ai.board = board;
+        }
+
+        public void Update() {
+            List<Move> listCopy = new List<Move>();
+
+            foreach (Move move in movesToExecute) {
+                listCopy.Add(move);
+            }
+
+            foreach (Move move in listCopy) {
+                MakeAndRenderMove(move);
+            }
+
+            movesToExecute = new List<Move>();
         }
 
         internal void PlayMoveSFX() {
