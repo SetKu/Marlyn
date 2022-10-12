@@ -13,8 +13,84 @@ namespace Marlyn {
                 }
             }
 
+            if (moves.Count == 0) {
+                return null;
+            }
+
             System.Random rd = new System.Random();
             return moves[rd.Next(moves.Count)];
+        }
+
+        public Move MinMaxMove(Piece.Color color, int depth) {
+            if (depth <= 0) {
+                return null;
+            }
+
+            Piece.Color oppColor = (color == Piece.Color.White ? Piece.Color.Black : Piece.Color.White);
+            Board baseBoard = board.Copy();
+            int movesMade = 0;
+
+            for (int i = 0; i < depth; i++) {
+                // Minimize opponent eval (through home action) or not.
+                bool min = i % 2 == 0;
+                // Iteration color.
+                Piece.Color iColor = (min ? oppColor : color);
+
+                (Move move, int eval)? bestMove = null;
+                bool shouldBreak = false;
+
+                foreach (Piece piece in baseBoard.pieces) {
+                    if (piece.color != iColor) { continue; }
+
+                    foreach (Move move in board.GetLegalMoves(piece)) {
+                        Board hypBoard = baseBoard.Copy();
+                        hypBoard.MakeMove(move);
+
+                        // Eval is always of opposing color.
+                        // If on the first level of tree, the goal is to find the move the home color can play that minimizes the opponents eval.
+                        int eval = hypBoard.Eval(min ? oppColor : color);
+
+                        if (oppColor == Piece.Color.White ? hypBoard.GetCheckStatus().white.isCheckmate : hypBoard.GetCheckStatus().black.isCheckmate) {
+                            // This is the best outcome. No further searching is required.
+                            bestMove = (move, eval);
+                            shouldBreak = true;
+                            break;
+                        }
+
+                        if (bestMove != null) {
+                            if (bestMove.Value.eval > eval) {
+                                bestMove = (move, eval);
+                            }
+
+                            continue;
+                        }
+
+                        bestMove = (move, eval);
+                    }
+
+                    if (shouldBreak) {
+                        break;
+                    }
+                }
+
+                if (bestMove == null) {
+                    break;
+                }
+
+                baseBoard.MakeMove(bestMove.Value.move);
+                movesMade += 1;
+
+                if (shouldBreak) {
+                    break;
+                }
+            }
+
+            if (movesMade > 0) {
+                // First move.
+                return baseBoard.movesMade[baseBoard.movesMade.Count - movesMade];
+            }
+
+            return null;
         }
 
         // public Move TreeMove(Piece.Color color, int depth) {

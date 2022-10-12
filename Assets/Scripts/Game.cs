@@ -58,6 +58,11 @@ namespace Marlyn {
                 }
 
                 Move nextMove = ai.RandomMove(board.nextMoveColor);
+
+                if (nextMove == null) {
+                    return;
+                }
+
                 movesToExecute.Add(nextMove);
                 Debug.Log("Added move");
 
