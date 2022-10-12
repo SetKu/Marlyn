@@ -198,5 +198,36 @@ namespace Tests {
             Assert.AreEqual(1, defKnightMoves.Count, "The knight should only be able to move to block the queen's attack in the test.");
             Assert.AreEqual(new Vector2Int(5, 5), defKnightMoves[0].destination);
         }
+
+        [Test]
+        public void TestTileUnderAttackForPawns() {
+            Board board = new Board();
+
+            // Pawn Tests
+            for (int x = 0; x < 8; x++) {
+                Piece piece1 = board.PieceAt(new Vector2Int(x, 1));
+                Assert.AreEqual(true, board.IsTileUnderAttack(new Vector2Int(x, 2), piece1.color));
+                Piece piece2 = board.PieceAt(new Vector2Int(x, 6));
+                Assert.AreEqual(true, board.IsTileUnderAttack(new Vector2Int(x, 5), piece2.color));
+            }
+        }
+
+        [Test]
+        public void TestKingLegalMoves() {
+            Board board = new Board();
+            Piece king = board.GetKing(Piece.Color.Black);
+            king.position = new Vector2Int(4, 2);
+            List<Move> moves1 = board.GetLegalMoves(king);
+            Assert.AreEqual(5, moves1.Count, "The king should be able to move freely, except backwards, in this case.");
+            king.position = new Vector2Int(4, 3);
+            List<Move> moves2 = board.GetLegalMoves(king);
+            Assert.AreEqual(8, moves2.Count, "The king should be able to move completely freely, in this case.");
+        }
+
+        [Test]
+        public void TestGameNotOverAtStart() {
+            Board board = new Board();
+            Assert.AreEqual(false, board.GameOver());
+        }
     }
 }

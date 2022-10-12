@@ -2,6 +2,8 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Marlyn {
     public class Game: MonoBehaviour {
@@ -12,8 +14,12 @@ namespace Marlyn {
         public TextMeshProUGUI capturedPiecesText;
         public TextMeshProUGUI nextTurnText;
         public TextMeshProUGUI checkStatusText;
+        public TextMeshProUGUI randomAIText;
+        public TextMeshProUGUI treeAIText;
         public GameObject promotionDialog;
         public Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
+        public AI ai;
+        public float aiMoveDelay;
         internal Board board;
         private List<(Vector2Int, GameObject)> tileObjects = new List<(Vector2Int, GameObject)>();
         private List<(Vector2Int, GameObject)> pieceObjects = new List<(Vector2Int, GameObject)>();
@@ -21,6 +27,81 @@ namespace Marlyn {
         private GameObject piecesCanvas;
         private GameObject uiCanvas;
         private GameObject activePromoDialog;
+        private bool runningRandomAI = false;
+        private bool runningTreeAI = false;
+        private List<Move> movesToExecute;
+        private CancellationToken? activeToken;
+        private AIModes aiMode = AIModes.Random;
+
+        public void RandomAIClicked() {
+            runningRandomAI = !runningRandomAI;
+
+            if (runningTreeAI) {
+                randomAIText.text = "Stop Random AI";
+            } else {
+                ResetAIText();
+            }
+
+            if (runningRandomAI) {
+                // Start running
+                LaunchAI();
+                return;
+            }
+
+            StopAI();
+        }
+
+        public void ResetAIText() {
+            randomAIText.text = "Activate Random AI";
+            treeAIText.text = "Activate Tree AI";
+        }
+
+        public void LaunchAI() {
+            activeToken = null;
+            movesToExecute = new List<Move>();
+            Task.Factory.StartNew(RunAI, TaskCreationOptions.LongRunning);
+        }
+
+        public void StopAI() {
+            CancellationTokenSource source = new CancellationTokenSource();
+            activeToken = source.Token;
+            source.Cancel();
+        }
+
+        public enum AIModes {
+            Random
+        }
+
+        public async void RunAI() {
+            while (!board.GameOver()) {
+                if (activeToken != null) {
+                    if (activeToken.Value.IsCancellationRequested) {
+                        return;
+                    }
+                }
+
+                Move nextMove = null;
+
+                switch (aiMode) {
+                case AIModes.Random:
+                    nextMove = ai.RandomMove(board.nextMoveColor);
+                    break;
+                default:
+                    break;
+                }
+
+                if (nextMove == null) {
+
+                    return;
+                }
+
+                movesToExecute.Add(nextMove);
+                Debug.Log("Added move");
+
+                int delayInMS = (int) (aiMoveDelay * 1000);
+                await Task.Delay(delayInMS);
+            }
+        }
 
         // Start is called before the first frame update
         public void Start() {
@@ -31,6 +112,24 @@ namespace Marlyn {
             SetupBoardUI();
             RenderPiecesUI();
             RenderTextUI();
+
+            movesToExecute = new List<Move>();
+            ai = new AI();
+            ai.board = board;
+        }
+
+        public void Update() {
+            List<Move> listCopy = new List<Move>();
+
+            foreach (Move move in movesToExecute) {
+                listCopy.Add(move);
+            }
+
+            foreach (Move move in listCopy) {
+                MakeAndRenderMove(move);
+            }
+
+            movesToExecute = new List<Move>();
         }
 
         internal void PlayMoveSFX() {

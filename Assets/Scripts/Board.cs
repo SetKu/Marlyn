@@ -26,7 +26,21 @@ namespace Marlyn {
             }
         }
 
-        public (CheckInfo white, CheckInfo black) GetCheckStatus(bool lookForCheckmate = true) {
+        public bool GameOver() {
+            (CheckInfo white, CheckInfo black) checkStatuses = GetCheckStatus();
+
+            if (checkStatuses.white.isCheckmate || checkStatuses.black.isCheckmate) {
+                return true;
+            }
+
+            if (checkStatuses.white.isStalemate || checkStatuses.black.isStalemate) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public (CheckInfo white, CheckInfo black) GetCheckStatus() {
             (CheckInfo white, CheckInfo black) checkStatus = (new CheckInfo(), new CheckInfo());
             
             foreach (Piece.Color color in Enum.GetValues(typeof(Piece.Color))) {
@@ -161,6 +175,11 @@ namespace Marlyn {
                                 return true;
                             }
                         }
+
+                        // An opponents piece has been found that's not attacking 
+                        // the position, but does block attacks from 
+                        // behind it directionally.
+                        break;
                     }
                 }
             }
