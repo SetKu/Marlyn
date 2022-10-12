@@ -51,25 +51,6 @@ namespace Marlyn {
             StopAI();
         }
 
-        public void TreeAIClicked() {
-            runningTreeAI = !runningTreeAI;
-
-            if (runningTreeAI) {
-                treeAIText.text = "Stop Tree AI";
-            } else {
-                ResetAIText();
-            }
-
-            treeAIText.text = runningTreeAI ? "Stop Tree AI" : "Activate Tree AI";
-
-            if (runningTreeAI) {
-                LaunchAI();
-                return;                
-            }
-
-            StopAI();
-        }
-
         public void ResetAIText() {
             randomAIText.text = "Activate Random AI";
             treeAIText.text = "Activate Tree AI";
@@ -88,7 +69,7 @@ namespace Marlyn {
         }
 
         public enum AIModes {
-            Random, Tree
+            Random
         }
 
         public async void RunAI() {
@@ -104,9 +85,6 @@ namespace Marlyn {
                 switch (aiMode) {
                 case AIModes.Random:
                     nextMove = ai.RandomMove(board.nextMoveColor);
-                    break;
-                case AIModes.Tree:
-                    nextMove = ai.TreeMove(board.nextMoveColor, 30);
                     break;
                 default:
                     break;
