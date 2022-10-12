@@ -31,6 +31,7 @@ namespace Marlyn {
         private bool runningTreeAI = false;
         private List<Move> movesToExecute;
         private CancellationToken? activeToken;
+        private AIModes aiMode = AIModes.Random;
 
         public void RandomAIClicked() {
             runningRandomAI = !runningRandomAI;
@@ -38,18 +39,42 @@ namespace Marlyn {
 
             if (runningRandomAI) {
                 // Start running
-                activeToken = null;
-                movesToExecute = new List<Move>();
-                Task.Factory.StartNew(RunRandomAI, TaskCreationOptions.LongRunning);
+                LaunchAI();
                 return;
             }
 
+            StopAI();
+        }
+
+        public void TreeAIClicked() {
+            runningTreeAI = !runningTreeAI;
+            treeAIText.text = runningTreeAI ? "Stop Tree AI" : "Activate Tree AI";
+
+            if (runningTreeAI) {
+                LaunchAI();
+                return;                
+            }
+
+            StopAI();
+        }
+
+        public void LaunchAI() {
+            activeToken = null;
+            movesToExecute = new List<Move>();
+            Task.Factory.StartNew(RunAI, TaskCreationOptions.LongRunning);
+        }
+
+        public void StopAI() {
             CancellationTokenSource source = new CancellationTokenSource();
             activeToken = source.Token;
             source.Cancel();
         }
 
-        public async void RunRandomAI() {
+        public enum AIModes {
+            Random, Tree
+        }
+
+        public async void RunAI() {
             while (!board.GameOver()) {
                 if (activeToken != null) {
                     if (activeToken.Value.IsCancellationRequested) {
@@ -57,7 +82,18 @@ namespace Marlyn {
                     }
                 }
 
-                Move nextMove = ai.RandomMove(board.nextMoveColor);
+                Move nextMove = null;
+
+                switch (aiMode) {
+                case AIModes.Random:
+                    nextMove = ai.RandomMove(board.nextMoveColor);
+                    break;
+                case AIModes.Tree:
+                    nextMove = ai.TreeMove(board.nextMoveColor, 3);
+                    break;
+                default:
+                    break;
+                }
 
                 if (nextMove == null) {
                     return;
@@ -69,11 +105,6 @@ namespace Marlyn {
                 int delayInMS = (int) (aiMoveDelay * 1000);
                 await Task.Delay(delayInMS);
             }
-        }
-
-        public void TreeAIClicked() {
-            runningTreeAI = !runningTreeAI;
-            treeAIText.text = runningTreeAI ? "Stop Tree AI" : "Activate Tree AI";
         }
 
         // Start is called before the first frame update

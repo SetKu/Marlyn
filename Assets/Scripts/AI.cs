@@ -21,7 +21,7 @@ namespace Marlyn {
             return moves[rd.Next(moves.Count)];
         }
 
-        public Move MinMaxMove(Piece.Color color, int depth) {
+        public Move TreeMove(Piece.Color color, int depth) {
             if (depth <= 0) {
                 return null;
             }
