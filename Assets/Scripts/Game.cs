@@ -15,7 +15,6 @@ namespace Marlyn {
         public TextMeshProUGUI nextTurnText;
         public TextMeshProUGUI checkStatusText;
         public TextMeshProUGUI randomAIText;
-        public TextMeshProUGUI treeAIText;
         public GameObject promotionDialog;
         public Vector2 boardOffset = new Vector2(-3.5f, -3.5f);
         public AI ai;
@@ -28,7 +27,6 @@ namespace Marlyn {
         private GameObject uiCanvas;
         private GameObject activePromoDialog;
         private bool runningRandomAI = false;
-        private bool runningTreeAI = false;
         private List<Move> movesToExecute;
         private CancellationToken? activeToken;
         private AIModes aiMode = AIModes.Random;
@@ -36,24 +34,15 @@ namespace Marlyn {
         public void RandomAIClicked() {
             runningRandomAI = !runningRandomAI;
 
-            if (runningTreeAI) {
-                randomAIText.text = "Stop Random AI";
-            } else {
-                ResetAIText();
-            }
-
             if (runningRandomAI) {
+                randomAIText.text = "Stop Random AI";
                 // Start running
                 LaunchAI();
                 return;
             }
 
-            StopAI();
-        }
-
-        public void ResetAIText() {
             randomAIText.text = "Activate Random AI";
-            treeAIText.text = "Activate Tree AI";
+            StopAI();
         }
 
         public void LaunchAI() {
@@ -96,7 +85,6 @@ namespace Marlyn {
                 }
 
                 movesToExecute.Add(nextMove);
-                Debug.Log("Added move");
 
                 int delayInMS = (int) (aiMoveDelay * 1000);
                 await Task.Delay(delayInMS);
